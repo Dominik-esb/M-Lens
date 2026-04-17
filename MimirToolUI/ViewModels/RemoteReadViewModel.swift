@@ -26,19 +26,16 @@ final class RemoteReadViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         let start = Date()
-        let outFile = FileManager.default.temporaryDirectory
-            .appendingPathComponent("mimir-remote-read-\(Int(Date().timeIntervalSince1970)).json")
         do {
             let formatter = ISO8601DateFormatter()
             formatter.formatOptions = [.withInternetDateTime]
-            _ = try await runner.run([
-                "remote-read", "export",
+            let output = try await runner.run([
+                "remote-read", "dump",
                 "--selector", selector,
                 "--from", formatter.string(from: fromDate),
-                "--to", formatter.string(from: toDate),
-                "--output-file", outFile.path
+                "--to", formatter.string(from: toDate)
             ], environment: environment)
-            results = try parseResults(from: outFile)
+            results = parseDumpOutput(output)
             queryDuration = String(format: "%.0fms", Date().timeIntervalSince(start) * 1000)
         } catch {
             errorMessage = error.localizedDescription
@@ -56,25 +53,50 @@ final class RemoteReadViewModel: ObservableObject {
         try csv.write(to: url, atomically: true, encoding: .utf8)
     }
 
-    /// Parse JSON Lines output from mimirtool remote-read export.
-    /// Each line: {"metric":{"__name__":"foo","label":"val"},"values":[[timestamp,"value"],...]}
-    private func parseResults(from url: URL) throws -> [RemoteReadResult] {
-        let content = try String(contentsOf: url, encoding: .utf8)
-        var results: [RemoteReadResult] = []
-        for line in content.components(separatedBy: "\n") where !line.trimmingCharacters(in: .whitespaces).isEmpty {
-            guard let data = line.data(using: .utf8),
-                  let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let metric = obj["metric"] as? [String: String],
-                  let values = obj["values"] as? [[Any]],
-                  let last = values.last,
-                  last.count == 2 else { continue }
-            let name = metric["__name__"] ?? "unknown"
-            let labels = metric.filter { $0.key != "__name__" }
-            let val = last[1] as? String ?? "\(last[1])"
-            let ts = "\(last[0])"
-            results.append(RemoteReadResult(metricName: name, labels: labels,
-                                            latestValue: val, timestamp: ts))
+    /// Parse `mimirtool remote-read dump` stdout.
+    /// Each line: `{__name__="foo",label="val"} value timestamp_ms`
+    /// We deduplicate per series, keeping the last (most recent) sample.
+    private func parseDumpOutput(_ output: String) -> [RemoteReadResult] {
+        guard let regex = try? NSRegularExpression(pattern: #"(\w+)="([^"]*)""#) else { return [] }
+        var latest: [String: RemoteReadResult] = [:]
+
+        for line in output.components(separatedBy: "\n") {
+            let t = line.trimmingCharacters(in: .whitespaces)
+            guard t.hasPrefix("{"), let closeBrace = t.firstIndex(of: "}") else { continue }
+
+            let labelsStr = String(t[t.index(after: t.startIndex)..<closeBrace])
+            let rest = String(t[t.index(after: closeBrace)...]).trimmingCharacters(in: .whitespaces)
+            let parts = rest.components(separatedBy: " ")
+            guard parts.count >= 2 else { continue }
+
+            let value = parts[0]
+            // Skip stale NaN values
+            if value == "NaN" || value == "nan" { continue }
+
+            let tsStr = parts[1]
+            let tsFormatted: String
+            if let tsMs = Double(tsStr) {
+                let date = Date(timeIntervalSince1970: tsMs / 1000)
+                let fmt = DateFormatter()
+                fmt.dateFormat = "HH:mm:ss"
+                tsFormatted = fmt.string(from: date)
+            } else {
+                tsFormatted = tsStr
+            }
+
+            var labels: [String: String] = [:]
+            var name = "unknown"
+            let nsLabels = labelsStr as NSString
+            let matches = regex.matches(in: labelsStr, range: NSRange(labelsStr.startIndex..., in: labelsStr))
+            for match in matches {
+                let k = nsLabels.substring(with: match.range(at: 1))
+                let v = nsLabels.substring(with: match.range(at: 2))
+                if k == "__name__" { name = v } else { labels[k] = v }
+            }
+
+            latest[labelsStr] = RemoteReadResult(metricName: name, labels: labels,
+                                                 latestValue: value, timestamp: tsFormatted)
         }
-        return results
+        return latest.values.sorted { $0.metricName < $1.metricName }
     }
 }

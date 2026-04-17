@@ -12,7 +12,9 @@ struct ContentView: View {
         NavigationSplitView {
             SidebarView(selectedPage: $selectedPage)
         } detail: {
-            if let env = envStore.activeEnvironment {
+            if selectedPage == .settings {
+                SettingsView()
+            } else if let env = envStore.activeEnvironment {
                 detailView(for: selectedPage, env: env)
             } else {
                 VStack(spacing: 12) {

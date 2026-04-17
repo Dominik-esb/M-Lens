@@ -82,6 +82,7 @@ struct SidebarView: View {
             .padding(.horizontal, 12).padding(.vertical, 7)
             .background(isActive ? Color(hex: "#2b3f5c") : Color.clear)
             .cornerRadius(7)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 8)

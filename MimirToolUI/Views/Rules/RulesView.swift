@@ -92,7 +92,12 @@ struct RulesView: View {
                             ForEach(ns.groups) { group in
                                 ForEach(group.rules) { rule in
                                     RuleRowView(rule: rule,
-                                        onEdit: { editingYAML = rule.yaml; showEditor = true },
+                                        onEdit: {
+                                            Task {
+                                                editingYAML = (try? await vm.fetchRuleGroupYAML(namespace: rule.namespace, group: rule.group)) ?? ""
+                                                showEditor = true
+                                            }
+                                        },
                                         onDelete: { deleteTarget = (ns.name, group.name); showDeleteConfirm = true }
                                     )
                                 }
@@ -180,6 +185,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .foregroundColor(Color(hex: "#bbbbbb"))
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#3a3a3a"), lineWidth: 1))
             .cornerRadius(8)
+            .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.8 : 1)
     }
 }
@@ -192,6 +198,7 @@ struct AccentButtonStyle: ButtonStyle {
             .foregroundColor(Color(hex: "#7ab3f0"))
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#2a4d8a"), lineWidth: 1))
             .cornerRadius(8)
+            .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.8 : 1)
     }
 }

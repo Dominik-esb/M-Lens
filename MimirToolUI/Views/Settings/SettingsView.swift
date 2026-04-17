@@ -60,6 +60,7 @@ struct SettingsView: View {
                                 .textFieldStyle(.plain)
                                 .font(.system(size: 13, design: .monospaced))
                                 .foregroundColor(Color(hex: "#d0d0d0"))
+                                .frame(maxWidth: .infinity)
                                 .padding(.horizontal, 10).padding(.vertical, 5)
                                 .background(Color(hex: "#272727"))
                                 .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#333333"), lineWidth: 1))
@@ -88,6 +89,7 @@ struct SettingsView: View {
                                 .textFieldStyle(.plain)
                                 .foregroundColor(Color(hex: "#d0d0d0"))
                                 .font(.system(size: 13, design: .monospaced))
+                                .frame(maxWidth: .infinity)
                                 .padding(.horizontal, 10).padding(.vertical, 5)
                                 .background(Color(hex: "#272727"))
                                 .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#333333"), lineWidth: 1))
@@ -98,20 +100,20 @@ struct SettingsView: View {
                     settingRow(label: "Timeout", description: "Request timeout") {
                         TextField("30s", text: $timeout)
                             .textFieldStyle(.plain).foregroundColor(Color(hex: "#d0d0d0"))
+                            .frame(width: 100)
                             .padding(.horizontal, 10).padding(.vertical, 5)
                             .background(Color(hex: "#272727"))
                             .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#333333"), lineWidth: 1))
                             .cornerRadius(7)
-                            .frame(width: 120)
                     }
                     settingRow(label: "Retries", description: "Max retry attempts") {
                         TextField("3", value: $retries, format: .number)
                             .textFieldStyle(.plain).foregroundColor(Color(hex: "#d0d0d0"))
+                            .frame(width: 100)
                             .padding(.horizontal, 10).padding(.vertical, 5)
                             .background(Color(hex: "#272727"))
                             .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#333333"), lineWidth: 1))
                             .cornerRadius(7)
-                            .frame(width: 120)
                     }
                 }
 

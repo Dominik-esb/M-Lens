@@ -60,10 +60,10 @@ final class MimirtoolRunner: MimirtoolRunning {
             args.append("--id=\(orgID)")
         }
         if env.tlsSkipVerify {
-            args.append("--tls.insecure-skip-verify")
+            args.append("--tls-insecure-skip-verify")
         }
         if let ca = env.caCertPath, !ca.isEmpty {
-            args.append("--tls.ca-path=\(ca)")
+            args.append("--tls-ca-path=\(ca)")
         }
         for (key, value) in env.extraHeaders.sorted(by: { $0.key < $1.key }) {
             args.append("--extra-headers=\(key):\(value)")
@@ -75,7 +75,8 @@ final class MimirtoolRunner: MimirtoolRunning {
         guard let binary = resolvedBinaryPath() else {
             throw MimirtoolError.binaryNotFound
         }
-        let allArgs = baseArgs(for: env) + args
+        // Flags must follow the subcommand for kingpin-based CLIs
+        let allArgs = args + baseArgs(for: env)
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: binary)

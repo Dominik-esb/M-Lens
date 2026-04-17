@@ -12,7 +12,7 @@ final class RulesViewModel: ObservableObject {
     private let environment: MimirEnvironment
 
     /// Injectable for testing: returns the URL of the temp directory where
-    /// `mimirtool rules list --output-dir` writes per-namespace YAML files.
+    /// `mimirtool rules print --output-dir` writes per-namespace YAML files.
     var tmpDirProvider: () -> URL = {
         FileManager.default.temporaryDirectory
             .appendingPathComponent("MimirToolUI-rules-\(Int(Date().timeIntervalSince1970))")
@@ -43,7 +43,7 @@ final class RulesViewModel: ObservableObject {
         do {
             try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
             _ = try await runner.run(
-                ["rules", "list", "--output-dir", tmpDir.path],
+                ["rules", "print", "--output-dir", tmpDir.path],
                 environment: environment
             )
             namespaces = try parseRulesDirectory(tmpDir)
@@ -51,6 +51,10 @@ final class RulesViewModel: ObservableObject {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    func fetchRuleGroupYAML(namespace: String, group: String) async throws -> String {
+        try await runner.run(["rules", "get", namespace, group], environment: environment)
     }
 
     func deleteNamespace(_ namespace: String) async {

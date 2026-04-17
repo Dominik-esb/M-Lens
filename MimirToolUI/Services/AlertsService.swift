@@ -22,7 +22,7 @@ final class AlertsService: AlertsFetching {
               scheme == "http" || scheme == "https" else {
             throw URLError(.badURL)
         }
-        let url = base.appendingPathComponent("api/prom/api/v1/alerts")
+        let url = base.appendingPathComponent("prometheus/api/v1/alerts")
         var req = URLRequest(url: url)
         req.timeoutInterval = 30
         req.httpMethod = "GET"
