@@ -74,27 +74,41 @@ final class MimirtoolRunner: MimirtoolRunning {
         }
         let allArgs = baseArgs(for: env) + args
 
-        return try await Task.detached(priority: .userInitiated) {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: binary)
-            process.arguments = allArgs
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: binary)
+        process.arguments = allArgs
 
-            let stdout = Pipe()
-            let stderr = Pipe()
-            process.standardOutput = stdout
-            process.standardError = stderr
+        let stdout = Pipe()
+        let stderr = Pipe()
+        process.standardOutput = stdout
+        process.standardError = stderr
 
-            try process.run()
-            process.waitUntilExit()
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
+                do {
+                    try process.run()
+                    // Read pipe data BEFORE waitUntilExit to prevent pipe buffer deadlock.
+                    // readDataToEndOfFile() drains the buffer so the child process can write
+                    // past the 64KB kernel buffer limit without blocking.
+                    let outData = stdout.fileHandleForReading.readDataToEndOfFile()
+                    let errData = stderr.fileHandleForReading.readDataToEndOfFile()
+                    process.waitUntilExit()
 
-            let out = String(data: stdout.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-            let err = String(data: stderr.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+                    let out = String(data: outData, encoding: .utf8) ?? ""
+                    let err = String(data: errData, encoding: .utf8) ?? ""
 
-            if process.terminationStatus == 0 {
-                return out
-            } else {
-                throw MimirtoolError.executionFailed(exitCode: process.terminationStatus, stderr: err)
+                    if process.terminationStatus == 0 {
+                        continuation.resume(returning: out)
+                    } else {
+                        continuation.resume(throwing: MimirtoolError.executionFailed(
+                            exitCode: process.terminationStatus, stderr: err))
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
             }
-        }.value
+        } onCancel: {
+            process.terminate()
+        }
     }
 }
