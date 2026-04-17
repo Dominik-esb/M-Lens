@@ -1,0 +1,38 @@
+name: MimirToolUI
+options:
+  bundleIdPrefix: com.mimirtool
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "16"
+  generateEmptyDirectories: true
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    ENABLE_HARDENED_RUNTIME: YES
+targets:
+  MimirToolUI:
+    type: application
+    platform: macOS
+    sources:
+      - path: MimirToolUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mimirtool.MimirToolUI
+        INFOPLIST_FILE: MimirToolUI/Info.plist
+    entitlements:
+      path: MimirToolUI/MimirToolUI.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+        com.apple.security.files.user-selected.read-write: true
+  MimirToolUITests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: MimirToolUITests
+    dependencies:
+      - target: MimirToolUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mimirtool.MimirToolUITests
