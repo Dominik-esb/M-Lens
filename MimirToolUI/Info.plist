@@ -5,9 +5,9 @@
   <key>CFBundleIdentifier</key>
   <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
   <key>CFBundleName</key>
-  <string>MimirTool</string>
+  <string>MimirLens</string>
   <key>CFBundleDisplayName</key>
-  <string>MimirTool</string>
+  <string>MimirLens</string>
   <key>NSHumanReadableCopyright</key>
   <string></string>
   <key>NSPrincipalClass</key>
