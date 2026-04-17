@@ -4,6 +4,14 @@ A native macOS application that provides a graphical interface for [mimirtool](h
 
 ---
 
+## Screenshots
+
+![Rules view showing recording rules across namespaces](docs/screenshots/rules.png)
+
+![Settings view with environment management and binary detection](docs/screenshots/settings.png)
+
+---
+
 ## Features
 
 - **Rules** — Browse, search, edit, upload, and delete recording and alerting rules across all namespaces
