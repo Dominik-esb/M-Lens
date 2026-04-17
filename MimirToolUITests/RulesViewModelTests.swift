@@ -23,23 +23,52 @@ final class MockRunner: MimirtoolRunning, @unchecked Sendable {
 @MainActor
 final class RulesViewModelTests: XCTestCase {
 
-    func test_load_parsesNamespacesFromOutput() async {
+    // Creates a temp dir pre-populated with YAML files for testing.
+    private func makeTmpDir(namespaceYAMLs: [String: String]) throws -> URL {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("rules-test-\(Int(Date().timeIntervalSince1970))-\(Int.random(in: 0..<10000))")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        for (ns, yaml) in namespaceYAMLs {
+            try yaml.write(to: dir.appendingPathComponent("\(ns).yaml"), atomically: true, encoding: .utf8)
+        }
+        return dir
+    }
+
+    func test_load_parsesNamespacesFromDirectory() async throws {
         let mock = MockRunner()
-        mock.stubbedOutput = """
-        Namespace: infra
-          Group: node-alerts
-            Rule: NodeHighCPU (alerting)
-            Rule: cpu:usage:rate5m (recording)
-        Namespace: app
-          Group: latency
-            Rule: HighP99Latency (alerting)
+        let infraYAML = """
+        groups:
+          - name: node-alerts
+            rules:
+              - alert: NodeHighCPU
+                expr: cpu > 0.8
+              - record: cpu:usage:rate5m
+                expr: rate(cpu[5m])
         """
+        let appYAML = """
+        groups:
+          - name: latency
+            rules:
+              - alert: HighP99Latency
+                expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 1
+        """
+        let dir = try makeTmpDir(namespaceYAMLs: ["infra": infraYAML, "app": appYAML])
         let vm = RulesViewModel(runner: mock, environment: MimirEnvironment(name: "T", url: "http://x"))
+        vm.tmpDirProvider = { dir }
         await vm.load()
         XCTAssertEqual(vm.namespaces.count, 2)
         let infra = vm.namespaces.first { $0.name == "infra" }
         XCTAssertNotNil(infra)
         XCTAssertEqual(infra?.groups.first?.rules.count, 2)
+    }
+
+    func test_load_usesOutputDirFlag() async {
+        let mock = MockRunner()
+        let vm = RulesViewModel(runner: mock, environment: MimirEnvironment(name: "T", url: "http://x"))
+        await vm.load()
+        XCTAssertTrue(mock.capturedArgs.contains("--output-dir"), "load() must pass --output-dir to runner")
+        XCTAssertTrue(mock.capturedArgs.contains("rules"))
+        XCTAssertTrue(mock.capturedArgs.contains("list"))
     }
 
     func test_load_setsErrorOnFailure() async {
@@ -77,15 +106,20 @@ final class RulesViewModelTests: XCTestCase {
         XCTAssertTrue(firstArgs.contains("load"))
     }
 
-    func test_filtered_bySearchText() async {
+    func test_filtered_bySearchText() async throws {
         let mock = MockRunner()
-        mock.stubbedOutput = """
-        Namespace: infra
-          Group: alerts
-            Rule: NodeHighCPU (alerting)
-            Rule: DiskFull (alerting)
+        let yaml = """
+        groups:
+          - name: alerts
+            rules:
+              - alert: NodeHighCPU
+                expr: placeholder
+              - alert: DiskFull
+                expr: placeholder
         """
+        let dir = try makeTmpDir(namespaceYAMLs: ["infra": yaml])
         let vm = RulesViewModel(runner: mock, environment: MimirEnvironment(name: "T", url: "http://x"))
+        vm.tmpDirProvider = { dir }
         await vm.load()
         vm.searchText = "CPU"
         XCTAssertEqual(vm.filtered.first?.groups.first?.rules.count, 1)

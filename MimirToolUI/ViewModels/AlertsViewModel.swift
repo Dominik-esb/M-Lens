@@ -11,11 +11,13 @@ final class AlertsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var lastRefreshed: Date?
+    @Published var autoRefresh: Bool = false
 
-    private let service: AlertsService
+    private let service: any AlertsFetching
     private let environment: MimirEnvironment
+    private var autoRefreshTask: Task<Void, Never>?
 
-    init(service: AlertsService = AlertsService(), environment: MimirEnvironment) {
+    init(service: any AlertsFetching = AlertsService(), environment: MimirEnvironment) {
         self.service = service
         self.environment = environment
     }
@@ -49,5 +51,19 @@ final class AlertsViewModel: ObservableObject {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    func setAutoRefresh(_ enabled: Bool) {
+        autoRefresh = enabled
+        autoRefreshTask?.cancel()
+        autoRefreshTask = nil
+        guard enabled else { return }
+        autoRefreshTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+                guard !Task.isCancelled else { break }
+                await self?.load()
+            }
+        }
     }
 }

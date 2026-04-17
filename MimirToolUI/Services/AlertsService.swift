@@ -1,5 +1,9 @@
 import Foundation
 
+protocol AlertsFetching: Sendable {
+    func fetch(for env: MimirEnvironment) async throws -> [MimirAlert]
+}
+
 // Decodable wrapper matching Prometheus /api/v1/alerts response shape:
 // {"status":"success","data":{"alerts":[...]}}
 private struct PrometheusAlertsEnvelope: Decodable {
@@ -10,7 +14,7 @@ private struct PrometheusAlertsEnvelope: Decodable {
     let data: DataWrapper
 }
 
-final class AlertsService: Sendable {
+final class AlertsService: AlertsFetching {
 
     func buildRequest(for env: MimirEnvironment) throws -> URLRequest {
         guard let base = URL(string: env.url),

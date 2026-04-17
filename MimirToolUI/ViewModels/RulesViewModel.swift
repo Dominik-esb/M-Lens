@@ -11,6 +11,13 @@ final class RulesViewModel: ObservableObject {
     private let runner: MimirtoolRunning
     private let environment: MimirEnvironment
 
+    /// Injectable for testing: returns the URL of the temp directory where
+    /// `mimirtool rules list --output-dir` writes per-namespace YAML files.
+    var tmpDirProvider: () -> URL = {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("MimirToolUI-rules-\(Int(Date().timeIntervalSince1970))")
+    }
+
     init(runner: MimirtoolRunning, environment: MimirEnvironment) {
         self.runner = runner
         self.environment = environment
@@ -32,9 +39,14 @@ final class RulesViewModel: ObservableObject {
     func load() async {
         isLoading = true
         errorMessage = nil
+        let tmpDir = tmpDirProvider()
         do {
-            let output = try await runner.run(["rules", "list"], environment: environment)
-            namespaces = parseRulesOutput(output)
+            try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+            _ = try await runner.run(
+                ["rules", "list", "--output-dir", tmpDir.path],
+                environment: environment
+            )
+            namespaces = try parseRulesDirectory(tmpDir)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -75,45 +87,45 @@ final class RulesViewModel: ObservableObject {
         }
     }
 
-    /// Parse mimirtool rules list stdout.
-    /// Expected format per line:
-    ///   "Namespace: <name>"
-    ///   "  Group: <group>"
-    ///   "    Rule: <rulename> (<alerting|recording>)"
-    private func parseRulesOutput(_ output: String) -> [RuleNamespace] {
-        var namespaces: [String: [String: [Rule]]] = [:]
-        var currentNS = ""
-        var currentGroup = ""
-        for line in output.components(separatedBy: "\n") {
+    // MARK: - Private parsing
+
+    private func parseRulesDirectory(_ dir: URL) throws -> [RuleNamespace] {
+        let files = try FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
+            .filter { ["yaml", "yml"].contains($0.pathExtension) }
+        return files.compactMap { file -> RuleNamespace? in
+            let ns = file.deletingPathExtension().lastPathComponent
+            let content = (try? String(contentsOf: file, encoding: .utf8)) ?? ""
+            let groups = parseGroupsFromYAML(content, namespace: ns)
+            guard !groups.isEmpty else { return nil }
+            return RuleNamespace(name: ns, groups: groups)
+        }.sorted { $0.name < $1.name }
+    }
+
+    /// Parse group/rule metadata from mimirtool rules list YAML output.
+    /// Handles the standard Prometheus rules YAML format written by mimirtool.
+    private func parseGroupsFromYAML(_ yaml: String, namespace: String) -> [RuleGroup] {
+        var groups: [RuleGroup] = []
+        var currentName = ""
+        var currentRules: [Rule] = []
+        for line in yaml.components(separatedBy: "\n") {
             let t = line.trimmingCharacters(in: .whitespaces)
-            if t.hasPrefix("Namespace:") {
-                currentNS = t.replacingOccurrences(of: "Namespace:", with: "")
-                    .trimmingCharacters(in: .whitespaces)
-                if namespaces[currentNS] == nil { namespaces[currentNS] = [:] }
-            } else if t.hasPrefix("Group:") {
-                currentGroup = t.replacingOccurrences(of: "Group:", with: "")
-                    .trimmingCharacters(in: .whitespaces)
-                if namespaces[currentNS]?[currentGroup] == nil {
-                    namespaces[currentNS]?[currentGroup] = []
+            if t.hasPrefix("- name:") {
+                if !currentName.isEmpty {
+                    groups.append(RuleGroup(namespace: namespace, name: currentName, rules: currentRules))
                 }
-            } else if t.hasPrefix("Rule:") {
-                let rest = t.replacingOccurrences(of: "Rule:", with: "")
-                    .trimmingCharacters(in: .whitespaces)
-                let isRecording = rest.contains("(recording)")
-                let name = rest
-                    .replacingOccurrences(of: "(alerting)", with: "")
-                    .replacingOccurrences(of: "(recording)", with: "")
-                    .trimmingCharacters(in: .whitespaces)
-                let rule = Rule(group: currentGroup, ruleName: name,
-                                type: isRecording ? .recording : .alerting,
-                                yaml: "", namespace: currentNS)
-                namespaces[currentNS]?[currentGroup]?.append(rule)
+                currentName = String(t.dropFirst("- name:".count)).trimmingCharacters(in: .whitespaces)
+                currentRules = []
+            } else if t.hasPrefix("- alert:") {
+                let name = String(t.dropFirst("- alert:".count)).trimmingCharacters(in: .whitespaces)
+                currentRules.append(Rule(group: currentName, ruleName: name, type: .alerting, yaml: "", namespace: namespace))
+            } else if t.hasPrefix("- record:") {
+                let name = String(t.dropFirst("- record:".count)).trimmingCharacters(in: .whitespaces)
+                currentRules.append(Rule(group: currentName, ruleName: name, type: .recording, yaml: "", namespace: namespace))
             }
         }
-        return namespaces.map { nsName, groups in
-            RuleNamespace(name: nsName, groups: groups.map { gName, rules in
-                RuleGroup(namespace: nsName, name: gName, rules: rules)
-            }.sorted { $0.name < $1.name })
-        }.sorted { $0.name < $1.name }
+        if !currentName.isEmpty {
+            groups.append(RuleGroup(namespace: namespace, name: currentName, rules: currentRules))
+        }
+        return groups.sorted { $0.name < $1.name }
     }
 }

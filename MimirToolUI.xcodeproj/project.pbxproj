@@ -7,22 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03471F42E42E88BE1B26DD25 /* AlertsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB5F0053570AD9ADF048ACC /* AlertsServiceTests.swift */; };
 		0428DBFE04405ED333ABFB3D /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E326886A1D0649F283C4E2FD /* StatusBarView.swift */; };
 		056B7D84437DFD8A281C0641 /* EnvironmentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8277752CC68CD4D213D9800F /* EnvironmentRowView.swift */; };
 		058C0DEA4177764E19568402 /* AlertModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94B87DF50FF2E5B1D0086DE /* AlertModel.swift */; };
 		1FCB7C2AE334AFAF307B49CC /* AlertmanagerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6A6257F030E31AA6FEDB0B /* AlertmanagerViewModel.swift */; };
 		22EDF091E5D10B5EC0175939 /* MimirToolUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F75510D3A8DBC2E05C0687 /* MimirToolUIApp.swift */; };
 		27D551B07B0B06A8C582E9A6 /* MimirToolUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289EB8C1B22E6B2D8C9EDE34 /* MimirToolUITests.swift */; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* MimirtoolRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C4D5E6F7A8B9C0D1E2F3A4 /* MimirtoolRunnerTests.swift */; };
-		C5D6E7F8A9B0C1D2E3F4A5B6 /* EnvironmentStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7E8F9A0B1C2D3E4F5A6B7C8 /* EnvironmentStoreTests.swift */; };
-		E1F2A3B4C5D6E7F8A9B0C1D2 /* AlertsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A4B5C6D7E8F9A0B1C2D3E4 /* AlertsServiceTests.swift */; };
+		2B7995AE7357C5D0AE159634 /* RemoteReadViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B20C77ABCD8AFD4CC7AF5F8 /* RemoteReadViewModelTests.swift */; };
 		2D9FA74F591A52795639197E /* MimirEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B21C2F10BDA758469022C6D /* MimirEnvironment.swift */; };
+		2E84A2F890478BF792402131 /* AlertsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653BA61F99D2C3DFCC9F344B /* AlertsViewModelTests.swift */; };
+		2F86DCE50F21EED6A083380D /* RulesViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE7FC61003B687C6F7473718 /* RulesViewModelTests.swift */; };
 		385309BF50B43AA1EDD5A461 /* AlertsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9619321A04FD26A173207C /* AlertsViewModel.swift */; };
 		45F09B8FDB862A28B0F5FA27 /* AlertmanagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63C97FA393FEC50F9F3173BB /* AlertmanagerView.swift */; };
+		48A52E4DCA9569FB037ED7AA /* AlertmanagerViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8F32E169CDFCA5D0D4C806 /* AlertmanagerViewModelTests.swift */; };
 		4EA979A3626D6A97DF66129D /* RuleEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36F9F817FA5E4DBD45FC75D7 /* RuleEditorSheet.swift */; };
 		53C151B9BC4CDD0DEA75D23C /* ErrorBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC48B1A0AC71B061507E4D7F /* ErrorBannerView.swift */; };
 		601E8297206FF9879C06E554 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE350DED6FFC0CF67D108C2B /* SidebarView.swift */; };
 		64BE74F9DE3392BB5E7F8427 /* RulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBEDCD1618CD293CFBAF89CB /* RulesView.swift */; };
+		67F7ED39235CCF320087F997 /* MimirtoolRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF98A03239FFE126291073B1 /* MimirtoolRunnerTests.swift */; };
 		715E738B0B664038BFFE4D66 /* ConfigSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E164DBC82F04729752F2D5 /* ConfigSummaryView.swift */; };
 		80EFAEDF36AB329221F52E9B /* TagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DF53B6DB2F025C2D9096FD /* TagView.swift */; };
 		8622D64AD71A0FC08911862A /* EnvironmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7542D06AF08821AD8C1A6467 /* EnvironmentStore.swift */; };
@@ -34,6 +37,7 @@
 		A875C78A9A79DD73800D6170 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC8C5E6FA441BA7C1D4DADD /* ContentView.swift */; };
 		B0558362A31649DAE214C7E7 /* RemoteReadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D4A3F17BE380EF53136638 /* RemoteReadViewModel.swift */; };
 		C21028BAA055E7D9661D526F /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1DA902B34CC591ADBE89FF /* AppSettings.swift */; };
+		C74ACF0AEDE20B9892E9E4FA /* EnvironmentStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C758EE837439B32F4B0172D /* EnvironmentStoreTests.swift */; };
 		CEB555299CED577F67F571CD /* RemoteReadModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8534785824F2F1CBBBD8674E /* RemoteReadModels.swift */; };
 		DFA8AD6C52A8EE7731EE108C /* EnvironmentSwitcherPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8A0A279F98DBB642D0CDF7 /* EnvironmentSwitcherPopover.swift */; };
 		E88620B0975FF1B9DEEBADF5 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49656795398DF303DABDC64 /* SettingsView.swift */; };
@@ -59,21 +63,22 @@
 		1CEF2455AA852E5DA83E9F1F /* YAMLEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YAMLEditorView.swift; sourceTree = "<group>"; };
 		24D4A3F17BE380EF53136638 /* RemoteReadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteReadViewModel.swift; sourceTree = "<group>"; };
 		289EB8C1B22E6B2D8C9EDE34 /* MimirToolUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MimirToolUITests.swift; sourceTree = "<group>"; };
-		B3C4D5E6F7A8B9C0D1E2F3A4 /* MimirtoolRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MimirtoolRunnerTests.swift; sourceTree = "<group>"; };
-		D7E8F9A0B1C2D3E4F5A6B7C8 /* EnvironmentStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentStoreTests.swift; sourceTree = "<group>"; };
-		F3A4B5C6D7E8F9A0B1C2D3E4 /* AlertsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsServiceTests.swift; sourceTree = "<group>"; };
 		2C734CB6F6A012629115FE81 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		36F9F817FA5E4DBD45FC75D7 /* RuleEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEditorSheet.swift; sourceTree = "<group>"; };
 		435255EBE47098B1A75120AD /* MimirToolUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MimirToolUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F702E09D84287F285401CAF /* EnvironmentFormSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentFormSheet.swift; sourceTree = "<group>"; };
 		52E164DBC82F04729752F2D5 /* ConfigSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigSummaryView.swift; sourceTree = "<group>"; };
 		63C97FA393FEC50F9F3173BB /* AlertmanagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertmanagerView.swift; sourceTree = "<group>"; };
+		653BA61F99D2C3DFCC9F344B /* AlertsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsViewModelTests.swift; sourceTree = "<group>"; };
 		7455B7BE315C3FEB7B24073A /* MimirToolUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MimirToolUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7542D06AF08821AD8C1A6467 /* EnvironmentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentStore.swift; sourceTree = "<group>"; };
+		7C758EE837439B32F4B0172D /* EnvironmentStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentStoreTests.swift; sourceTree = "<group>"; };
 		8277752CC68CD4D213D9800F /* EnvironmentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentRowView.swift; sourceTree = "<group>"; };
 		8534785824F2F1CBBBD8674E /* RemoteReadModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteReadModels.swift; sourceTree = "<group>"; };
+		8B20C77ABCD8AFD4CC7AF5F8 /* RemoteReadViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteReadViewModelTests.swift; sourceTree = "<group>"; };
 		8E8A0A279F98DBB642D0CDF7 /* EnvironmentSwitcherPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentSwitcherPopover.swift; sourceTree = "<group>"; };
 		9D2D4C07C76ED9630743E295 /* RuleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleModels.swift; sourceTree = "<group>"; };
+		9D8F32E169CDFCA5D0D4C806 /* AlertmanagerViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertmanagerViewModelTests.swift; sourceTree = "<group>"; };
 		A6E116713F81442653149DCA /* AlertsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsService.swift; sourceTree = "<group>"; };
 		A92682C9B29DB6F7EB28F9BC /* MimirToolUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MimirToolUI.entitlements; sourceTree = "<group>"; };
 		ACC8C5E6FA441BA7C1D4DADD /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -84,12 +89,15 @@
 		CC48B1A0AC71B061507E4D7F /* ErrorBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorBannerView.swift; sourceTree = "<group>"; };
 		D49656795398DF303DABDC64 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		DB6A6257F030E31AA6FEDB0B /* AlertmanagerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertmanagerViewModel.swift; sourceTree = "<group>"; };
+		DBB5F0053570AD9ADF048ACC /* AlertsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsServiceTests.swift; sourceTree = "<group>"; };
 		DC9619321A04FD26A173207C /* AlertsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsViewModel.swift; sourceTree = "<group>"; };
 		E326886A1D0649F283C4E2FD /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
 		E801F1FB7CFFF615C8BE7B87 /* RemoteReadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteReadView.swift; sourceTree = "<group>"; };
 		E94B87DF50FF2E5B1D0086DE /* AlertModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertModel.swift; sourceTree = "<group>"; };
+		EE7FC61003B687C6F7473718 /* RulesViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesViewModelTests.swift; sourceTree = "<group>"; };
 		F1F2B7AE9E18A96BBB3DCC6E /* RulesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesViewModel.swift; sourceTree = "<group>"; };
 		F8DF53B6DB2F025C2D9096FD /* TagView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagView.swift; sourceTree = "<group>"; };
+		FF98A03239FFE126291073B1 /* MimirtoolRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MimirtoolRunnerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -128,10 +136,14 @@
 		44EC23F01411101254590F38 /* MimirToolUITests */ = {
 			isa = PBXGroup;
 			children = (
+				9D8F32E169CDFCA5D0D4C806 /* AlertmanagerViewModelTests.swift */,
+				DBB5F0053570AD9ADF048ACC /* AlertsServiceTests.swift */,
+				653BA61F99D2C3DFCC9F344B /* AlertsViewModelTests.swift */,
+				7C758EE837439B32F4B0172D /* EnvironmentStoreTests.swift */,
+				FF98A03239FFE126291073B1 /* MimirtoolRunnerTests.swift */,
 				289EB8C1B22E6B2D8C9EDE34 /* MimirToolUITests.swift */,
-				B3C4D5E6F7A8B9C0D1E2F3A4 /* MimirtoolRunnerTests.swift */,
-				D7E8F9A0B1C2D3E4F5A6B7C8 /* EnvironmentStoreTests.swift */,
-				F3A4B5C6D7E8F9A0B1C2D3E4 /* AlertsServiceTests.swift */,
+				8B20C77ABCD8AFD4CC7AF5F8 /* RemoteReadViewModelTests.swift */,
+				EE7FC61003B687C6F7473718 /* RulesViewModelTests.swift */,
 			);
 			path = MimirToolUITests;
 			sourceTree = "<group>";
@@ -322,10 +334,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				48A52E4DCA9569FB037ED7AA /* AlertmanagerViewModelTests.swift in Sources */,
+				03471F42E42E88BE1B26DD25 /* AlertsServiceTests.swift in Sources */,
+				2E84A2F890478BF792402131 /* AlertsViewModelTests.swift in Sources */,
+				C74ACF0AEDE20B9892E9E4FA /* EnvironmentStoreTests.swift in Sources */,
 				27D551B07B0B06A8C582E9A6 /* MimirToolUITests.swift in Sources */,
-				A1B2C3D4E5F6A7B8C9D0E1F2 /* MimirtoolRunnerTests.swift in Sources */,
-				C5D6E7F8A9B0C1D2E3F4A5B6 /* EnvironmentStoreTests.swift in Sources */,
-				E1F2A3B4C5D6E7F8A9B0C1D2 /* AlertsServiceTests.swift in Sources */,
+				67F7ED39235CCF320087F997 /* MimirtoolRunnerTests.swift in Sources */,
+				2B7995AE7357C5D0AE159634 /* RemoteReadViewModelTests.swift in Sources */,
+				2F86DCE50F21EED6A083380D /* RulesViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
