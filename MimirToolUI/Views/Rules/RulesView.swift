@@ -10,6 +10,8 @@ struct RulesView: View {
     @State private var deleteTarget: (namespace: String, group: String?)? = nil
     @State private var showFilePicker = false
     @State private var selectedRule: Rule?
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     init(environment: MimirEnvironment) {
         self.environment = environment
@@ -23,24 +25,24 @@ struct RulesView: View {
         VStack(spacing: 0) {
             // Header
             HStack(spacing: 10) {
-                Text("Rules").font(.system(size: 20, weight: .semibold)).foregroundColor(.white)
+                Text("Rules").font(.system(size: 20, weight: .semibold)).foregroundStyle(.primary)
                 Spacer()
                 Button { Task { await vm.load() } } label: {
                     Image(systemName: "arrow.clockwise")
-                        .foregroundColor(Color(hex: "#666666"))
+                        .foregroundColor(t.iconColor)
                         .rotationEffect(.degrees(vm.isLoading ? 360 : 0))
                         .animation(vm.isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: vm.isLoading)
                 }.buttonStyle(.plain)
 
                 HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass").foregroundColor(Color(hex: "#555555")).font(.system(size: 12))
+                    Image(systemName: "magnifyingglass").foregroundColor(t.textFaint).font(.system(size: 12))
                     TextField("Search…", text: $vm.searchText)
-                        .textFieldStyle(.plain).font(.system(size: 13)).foregroundColor(Color(hex: "#c8c8c8"))
+                        .textFieldStyle(.plain).font(.system(size: 13)).foregroundStyle(.primary)
                         .frame(maxWidth: .infinity)
                 }
                 .padding(.horizontal, 12).padding(.vertical, 5)
-                .background(Color(hex: "#1e1e1e"))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "#333333"), lineWidth: 1))
+                .background(t.searchBg)
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(t.borderSub, lineWidth: 1))
                 .frame(width: 200)
             }
             .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 12)
@@ -86,8 +88,8 @@ struct RulesView: View {
                     Text("ACTIONS").tableHeader().frame(width: 70, alignment: .trailing)
                 }
                 .padding(.horizontal, 14).padding(.vertical, 10)
-                .background(Color(hex: "#1a1a1a"))
-                .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#2a2a2a")), alignment: .bottom)
+                .background(t.surfaceAlt)
+                .overlay(Rectangle().frame(height: 1).foregroundColor(t.headerLine), alignment: .bottom)
 
                 ScrollView {
                     LazyVStack(spacing: 0) {
@@ -114,9 +116,9 @@ struct RulesView: View {
                         if !vm.isLoading && vm.namespaces.isEmpty {
                             VStack(spacing: 8) {
                                 Image(systemName: "doc.text").font(.system(size: 28))
-                                    .foregroundColor(Color(hex: "#3a3a3a"))
+                                    .foregroundStyle(.tertiary)
                                 Text("No rules found.")
-                                    .foregroundColor(Color(hex: "#444444")).font(.system(size: 13))
+                                    .foregroundStyle(.secondary).font(.system(size: 13))
                             }
                             .padding(40)
                         }
@@ -129,13 +131,13 @@ struct RulesView: View {
                     statusText: "\(vm.namespaces.flatMap(\.groups).flatMap(\.rules).count) rules · \(vm.namespaces.count) namespaces"
                 )
             }
-            .background(Color(hex: "#1e1e1e"))
+            .background(t.surface)
             .cornerRadius(10)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#2e2e2e"), lineWidth: 1))
-            .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(t.border, lineWidth: 1))
+            .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
             .padding(.horizontal, 20).padding(.bottom, 16)
         }
-        .background(Color(hex: "#242424"))
+        .background(t.bg)
         .task { await vm.load() }
         .sheet(item: $selectedRule) { rule in
             RuleDetailSheet(rule: rule, runner: MimirtoolRunner.fromAppStorage(), environment: environment) {
@@ -175,6 +177,8 @@ private struct RuleRowView: View {
     let onEdit: () -> Void
     let onDelete: () -> Void
     @State private var isHovered = false
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     var body: some View {
         Button(action: onTap) {
@@ -182,10 +186,10 @@ private struct RuleRowView: View {
                 TagView(text: rule.namespace, style: .namespace)
                     .frame(width: 120, alignment: .leading)
                 Text(rule.group)
-                    .font(.system(size: 12)).foregroundColor(Color(hex: "#999999"))
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
                     .frame(width: 160, alignment: .leading).lineLimit(1)
                 Text(rule.ruleName)
-                    .font(.system(size: 13)).foregroundColor(Color(hex: "#d0d0d0"))
+                    .font(.system(size: 13)).foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading).lineLimit(1)
                 TagView(text: rule.type.rawValue, style: rule.type == .alerting ? .alerting : .recording)
                     .frame(width: 90, alignment: .leading)
@@ -196,13 +200,13 @@ private struct RuleRowView: View {
                 .frame(width: 70, alignment: .trailing)
             }
             .padding(.horizontal, 14).padding(.vertical, 10)
-            .background(isHovered ? Color(hex: "#232323") : Color.clear)
+            .background(isHovered ? t.rowHover : Color.clear)
             .contentShape(Rectangle())
             .animation(.easeOut(duration: 0.1), value: isHovered)
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
-        .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#242424")), alignment: .bottom)
+        .overlay(Rectangle().frame(height: 1).foregroundColor(t.rowLine), alignment: .bottom)
     }
 
     @ViewBuilder
@@ -210,14 +214,14 @@ private struct RuleRowView: View {
         Button(action: action) {
             Image(systemName: systemImage).font(.system(size: 11))
                 .frame(width: 26, height: 26)
-                .foregroundColor(danger ? Color(hex: "#f87171") : Color(hex: "#666666"))
-                .background(Color(hex: danger ? "#2e1515" : "#2a2a2a").opacity(0))
-                .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color(hex: danger ? "#4a2020" : "#333333"), lineWidth: 1))
+                .foregroundColor(danger ? Color(hex: "#f87171") : t.iconColor)
+                .overlay(RoundedRectangle(cornerRadius: 5).stroke(
+                    danger ? t.btnDanBorder : t.iconBtnBorder, lineWidth: 1))
                 .cornerRadius(5)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .onTapGesture { action() }  // prevent row tap from firing
+        .onTapGesture { action() }
     }
 }
 
@@ -229,6 +233,8 @@ private struct RuleDetailSheet: View {
     let environment: MimirEnvironment
     let onEdit: () -> Void
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
     @State private var yaml: String = ""
     @State private var isLoading = true
 
@@ -238,7 +244,7 @@ private struct RuleDetailSheet: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(rule.ruleName)
-                        .font(.system(size: 17, weight: .semibold)).foregroundColor(.white).lineLimit(2)
+                        .font(.system(size: 17, weight: .semibold)).foregroundStyle(.primary).lineLimit(2)
                     HStack(spacing: 6) {
                         TagView(text: rule.namespace, style: .namespace)
                         TagView(text: rule.type.rawValue, style: rule.type == .alerting ? .alerting : .recording)
@@ -251,8 +257,8 @@ private struct RuleDetailSheet: View {
                 }
             }
             .padding(20)
-            .background(Color(hex: "#1a1a1a"))
-            .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#272727")), alignment: .bottom)
+            .background(t.surfaceAlt)
+            .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
 
             // Metadata row
             HStack(spacing: 24) {
@@ -262,27 +268,25 @@ private struct RuleDetailSheet: View {
                 Spacer()
             }
             .padding(.horizontal, 20).padding(.vertical, 12)
-            .background(Color(hex: "#1c1c1c"))
-            .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#272727")), alignment: .bottom)
+            .background(t.surface)
+            .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
 
             // YAML section
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text("YAML").font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(Color(hex: "#555555")).tracking(0.7)
+                        .foregroundStyle(.secondary).tracking(0.7)
                     Spacer()
-                    if isLoading {
-                        ProgressView().scaleEffect(0.6)
-                    }
+                    if isLoading { ProgressView().scaleEffect(0.6) }
                 }
                 .padding(.horizontal, 14).padding(.vertical, 8)
-                .background(Color(hex: "#1a1a1a"))
-                .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#272727")), alignment: .bottom)
+                .background(t.surfaceAlt)
+                .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
 
                 ScrollView {
                     Text(yaml.isEmpty && !isLoading ? "Could not load YAML." : yaml)
                         .font(.system(size: 12, design: .monospaced))
-                        .foregroundColor(Color(hex: "#c8c8c8"))
+                        .foregroundColor(t.textSub)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(14)
                         .textSelection(.enabled)
@@ -293,7 +297,7 @@ private struct RuleDetailSheet: View {
             .frame(maxHeight: .infinity)
         }
         .frame(width: 620, height: 500)
-        .background(Color(hex: "#1e1e1e"))
+        .background(t.surface)
         .task {
             yaml = (try? await runner.run(["rules", "get", rule.namespace, rule.group], environment: environment)) ?? ""
             isLoading = false
@@ -302,8 +306,8 @@ private struct RuleDetailSheet: View {
 
     private func metaItem(_ label: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.system(size: 10, weight: .semibold)).foregroundColor(Color(hex: "#555555")).tracking(0.5)
-            Text(value).font(.system(size: 12)).foregroundColor(Color(hex: "#c8c8c8"))
+            Text(label).font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary).tracking(0.5)
+            Text(value).font(.system(size: 12)).foregroundColor(t.textSub)
         }
     }
 }
@@ -311,12 +315,14 @@ private struct RuleDetailSheet: View {
 // MARK: - Shared Button Styles
 
 struct SecondaryButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) var cs
     func makeBody(configuration: Configuration) -> some View {
+        let t = Theme(cs)
         configuration.label
             .padding(.horizontal, 12).padding(.vertical, 5)
-            .background(Color(hex: "#2e2e2e"))
-            .foregroundColor(Color(hex: "#bbbbbb"))
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#3a3a3a"), lineWidth: 1))
+            .background(t.btnSecBg)
+            .foregroundColor(t.btnSecFg)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(t.btnSecBorder, lineWidth: 1))
             .cornerRadius(8)
             .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.7 : 1)
@@ -326,12 +332,14 @@ struct SecondaryButtonStyle: ButtonStyle {
 }
 
 struct AccentButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) var cs
     func makeBody(configuration: Configuration) -> some View {
+        let t = Theme(cs)
         configuration.label
             .padding(.horizontal, 12).padding(.vertical, 5)
-            .background(Color(hex: "#1e3a6e"))
-            .foregroundColor(Color(hex: "#7ab3f0"))
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#2a4d8a"), lineWidth: 1))
+            .background(t.btnAccBg)
+            .foregroundColor(t.btnAccFg)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(t.btnAccBorder, lineWidth: 1))
             .cornerRadius(8)
             .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.7 : 1)
@@ -342,12 +350,15 @@ struct AccentButtonStyle: ButtonStyle {
 
 struct IconButtonStyle: ButtonStyle {
     var danger = false
+    @Environment(\.colorScheme) var cs
     func makeBody(configuration: Configuration) -> some View {
+        let t = Theme(cs)
         configuration.label
             .frame(width: 26, height: 26)
-            .background(configuration.isPressed ? (danger ? Color(hex: "#2e1515") : Color(hex: "#2a2a2a")) : Color.clear)
-            .foregroundColor(danger ? Color(hex: "#f87171") : Color(hex: "#666666"))
-            .overlay(RoundedRectangle(cornerRadius: 6).stroke(danger ? Color(hex: "#4a2020") : Color(hex: "#333333"), lineWidth: 1))
+            .background(configuration.isPressed ? (danger ? t.btnDanBg : t.btnSecBg) : Color.clear)
+            .foregroundColor(danger ? Color(hex: "#f87171") : t.iconColor)
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(
+                danger ? t.iconBtnDanBorder : t.iconBtnBorder, lineWidth: 1))
             .cornerRadius(6)
             .contentShape(Rectangle())
             .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
@@ -359,7 +370,7 @@ struct IconButtonStyle: ButtonStyle {
 extension View {
     func tableHeader() -> some View {
         self.font(.system(size: 11, weight: .semibold))
-            .foregroundColor(Color(hex: "#555555"))
+            .foregroundStyle(.secondary)
             .textCase(.uppercase)
             .tracking(0.7)
     }
@@ -368,4 +379,3 @@ extension View {
 extension UTType {
     static var yaml: UTType { UTType(filenameExtension: "yaml") ?? .plainText }
 }
-

@@ -4,6 +4,8 @@ import AppKit
 struct RemoteReadView: View {
     let environment: MimirEnvironment
     @StateObject private var vm: RemoteReadViewModel
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     init(environment: MimirEnvironment) {
         self.environment = environment
@@ -16,7 +18,7 @@ struct RemoteReadView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Remote Read").font(.system(size: 20, weight: .semibold)).foregroundColor(.white)
+                Text("Remote Read").font(.system(size: 20, weight: .semibold)).foregroundStyle(.primary)
                 Spacer()
             }
             .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 12)
@@ -30,28 +32,28 @@ struct RemoteReadView: View {
             VStack(spacing: 10) {
                 HStack(spacing: 12) {
                     Text("SELECTOR")
-                        .font(.system(size: 11, weight: .semibold)).foregroundColor(Color(hex: "#555555"))
+                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                         .tracking(0.7).frame(width: 80, alignment: .leading)
                     TextField("{job=\"node-exporter\"}", text: $vm.selector)
                         .textFieldStyle(.plain)
                         .font(.system(size: 13, design: .monospaced))
-                        .foregroundColor(Color(hex: "#d0d0d0"))
+                        .foregroundColor(t.textBody)
                         .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(Color(hex: "#272727"))
-                        .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#333333"), lineWidth: 1))
+                        .background(t.inputBg)
+                        .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
                         .cornerRadius(7)
                 }
                 HStack(spacing: 12) {
                     Text("FROM")
-                        .font(.system(size: 11, weight: .semibold)).foregroundColor(Color(hex: "#555555"))
+                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                         .tracking(0.7).frame(width: 80, alignment: .leading)
                     DatePicker("", selection: $vm.fromDate, displayedComponents: [.date, .hourAndMinute])
-                        .labelsHidden().colorScheme(.dark)
+                        .labelsHidden()
                     Text("TO")
-                        .font(.system(size: 11, weight: .semibold)).foregroundColor(Color(hex: "#555555"))
+                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                         .tracking(0.7).frame(width: 30, alignment: .center)
                     DatePicker("", selection: $vm.toDate, displayedComponents: [.date, .hourAndMinute])
-                        .labelsHidden().colorScheme(.dark)
+                        .labelsHidden()
                 }
                 HStack {
                     Spacer()
@@ -67,25 +69,25 @@ struct RemoteReadView: View {
                 }
             }
             .padding(16)
-            .background(Color(hex: "#1e1e1e"))
+            .background(t.surface)
             .cornerRadius(10)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#2e2e2e"), lineWidth: 1))
-            .shadow(color: .black.opacity(0.45), radius: 8, y: 4)
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(t.border, lineWidth: 1))
+            .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
             .padding(.horizontal, 20).padding(.bottom, 12)
 
             // Results card
             VStack(spacing: 0) {
                 HStack {
                     Text("RESULTS").font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(Color(hex: "#555555")).tracking(0.7)
+                        .foregroundStyle(.secondary).tracking(0.7)
                     Spacer()
                     if !vm.results.isEmpty {
-                        Text("\(vm.results.count) series").font(.system(size: 11)).foregroundColor(Color(hex: "#444444"))
+                        Text("\(vm.results.count) series").font(.system(size: 11)).foregroundStyle(.tertiary)
                     }
                 }
                 .padding(.horizontal, 14).padding(.vertical, 8)
-                .background(Color(hex: "#1a1a1a"))
-                .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#2a2a2a")), alignment: .bottom)
+                .background(t.surfaceAlt)
+                .overlay(Rectangle().frame(height: 1).foregroundColor(t.headerLine), alignment: .bottom)
 
                 HStack {
                     Text("METRIC").tableHeader().frame(width: 180, alignment: .leading)
@@ -95,8 +97,8 @@ struct RemoteReadView: View {
                     Text("TIMESTAMP").tableHeader().frame(width: 140, alignment: .trailing)
                 }
                 .padding(.horizontal, 14).padding(.vertical, 8)
-                .background(Color(hex: "#1e1e1e"))
-                .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#2a2a2a")), alignment: .bottom)
+                .background(t.surface)
+                .overlay(Rectangle().frame(height: 1).foregroundColor(t.headerLine), alignment: .bottom)
 
                 ScrollView {
                     LazyVStack(spacing: 0) {
@@ -108,24 +110,24 @@ struct RemoteReadView: View {
                                     .frame(width: 180, alignment: .leading).lineLimit(1)
                                 Text(r.labels.sorted { $0.key < $1.key }.map { "\($0.key)=\"\($0.value)\"" }.joined(separator: ", "))
                                     .font(.system(size: 11, design: .monospaced))
-                                    .foregroundColor(Color(hex: "#888888"))
+                                    .foregroundStyle(.secondary)
                                     .lineLimit(1)
                                 Spacer()
                                 Text(r.latestValue)
                                     .font(.system(size: 12, design: .monospaced))
-                                    .foregroundColor(Color(hex: "#a8d8a8"))
+                                    .foregroundColor(Color(hex: "#4ade80"))
                                     .frame(width: 80, alignment: .trailing)
                                 Text(r.timestamp)
                                     .font(.system(size: 11, design: .monospaced))
-                                    .foregroundColor(Color(hex: "#555555"))
+                                    .foregroundStyle(.tertiary)
                                     .frame(width: 140, alignment: .trailing)
                             }
                             .padding(.horizontal, 14).padding(.vertical, 9)
-                            .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#252525")), alignment: .bottom)
+                            .overlay(Rectangle().frame(height: 1).foregroundColor(t.divider), alignment: .bottom)
                         }
                         if vm.results.isEmpty && !vm.isLoading {
                             Text("Run a query to see results")
-                                .foregroundColor(Color(hex: "#444444")).padding(32)
+                                .foregroundStyle(.tertiary).padding(32)
                         }
                     }
                 }
@@ -133,13 +135,13 @@ struct RemoteReadView: View {
                 StatusBarView(environment: environment,
                               statusText: vm.queryDuration.map { "Queried in \($0)" } ?? "")
             }
-            .background(Color(hex: "#1e1e1e"))
+            .background(t.surface)
             .cornerRadius(10)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#2e2e2e"), lineWidth: 1))
-            .shadow(color: .black.opacity(0.45), radius: 8, y: 4)
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(t.border, lineWidth: 1))
+            .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
             .padding(.horizontal, 20).padding(.bottom, 16)
         }
-        .background(Color(hex: "#242424"))
+        .background(t.bg)
     }
 
     private func exportCSV() {

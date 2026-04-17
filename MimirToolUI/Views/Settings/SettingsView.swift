@@ -9,6 +9,8 @@ struct SettingsView: View {
     @AppStorage("caCertPath") private var caCertPath: String = ""
     @AppStorage("timeout") private var timeout: String = "30s"
     @AppStorage("retries") private var retries: Int = 3
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     @State private var showAddEnv = false
     @State private var editingEnv: MimirEnvironment?
@@ -22,7 +24,7 @@ struct SettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Settings")
-                    .font(.system(size: 20, weight: .semibold)).foregroundColor(.white)
+                    .font(.system(size: 20, weight: .semibold)).foregroundStyle(.primary)
                     .padding(.top, 20)
 
                 // Environments
@@ -46,7 +48,7 @@ struct SettingsView: View {
                     }
                     if envStore.environments.isEmpty {
                         Text("No environments yet.")
-                            .font(.system(size: 13)).foregroundColor(Color(hex: "#444444"))
+                            .font(.system(size: 13)).foregroundStyle(.tertiary)
                             .padding(16)
                     }
                 }
@@ -59,16 +61,16 @@ struct SettingsView: View {
                             TextField("/path/to/mimirtool", text: $mimirtoolPath)
                                 .textFieldStyle(.plain)
                                 .font(.system(size: 13, design: .monospaced))
-                                .foregroundColor(Color(hex: "#d0d0d0"))
+                                .foregroundColor(t.textBody)
                                 .frame(maxWidth: .infinity)
                                 .padding(.horizontal, 10).padding(.vertical, 5)
-                                .background(Color(hex: "#272727"))
-                                .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#333333"), lineWidth: 1))
+                                .background(t.inputBg)
+                                .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
                                 .cornerRadius(7)
                             if detectedPath != nil && mimirtoolPath.isEmpty {
                                 Text("✓ detected").font(.system(size: 11))
                                     .padding(.horizontal, 7).padding(.vertical, 2)
-                                    .background(Color(hex: "#142e14")).foregroundColor(Color(hex: "#4ade80"))
+                                    .background(t.tagRecordBg).foregroundColor(Color(hex: "#4ade80"))
                                     .cornerRadius(4)
                             }
                             Button("Browse…") { pickFile { mimirtoolPath = $0 } }
@@ -87,32 +89,32 @@ struct SettingsView: View {
                         HStack(spacing: 8) {
                             TextField("", text: $caCertPath)
                                 .textFieldStyle(.plain)
-                                .foregroundColor(Color(hex: "#d0d0d0"))
+                                .foregroundColor(t.textBody)
                                 .font(.system(size: 13, design: .monospaced))
                                 .frame(maxWidth: .infinity)
                                 .padding(.horizontal, 10).padding(.vertical, 5)
-                                .background(Color(hex: "#272727"))
-                                .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#333333"), lineWidth: 1))
+                                .background(t.inputBg)
+                                .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
                                 .cornerRadius(7)
                             Button("Browse…") { pickFile { caCertPath = $0 } }.buttonStyle(SecondaryButtonStyle())
                         }
                     }
                     settingRow(label: "Timeout", description: "Request timeout") {
                         TextField("30s", text: $timeout)
-                            .textFieldStyle(.plain).foregroundColor(Color(hex: "#d0d0d0"))
+                            .textFieldStyle(.plain).foregroundColor(t.textBody)
                             .frame(width: 100)
                             .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(Color(hex: "#272727"))
-                            .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#333333"), lineWidth: 1))
+                            .background(t.inputBg)
+                            .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
                             .cornerRadius(7)
                     }
                     settingRow(label: "Retries", description: "Max retry attempts") {
                         TextField("3", value: $retries, format: .number)
-                            .textFieldStyle(.plain).foregroundColor(Color(hex: "#d0d0d0"))
+                            .textFieldStyle(.plain).foregroundColor(t.textBody)
                             .frame(width: 100)
                             .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(Color(hex: "#272727"))
-                            .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#333333"), lineWidth: 1))
+                            .background(t.inputBg)
+                            .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
                             .cornerRadius(7)
                     }
                 }
@@ -129,7 +131,6 @@ struct SettingsView: View {
                         }
                         .pickerStyle(.menu)
                         .frame(width: 120)
-                        .colorScheme(.dark)
                     }
                     settingRow(label: "Verbose Output", description: "Show raw mimirtool output") {
                         Toggle("", isOn: $verboseOutput).labelsHidden()
@@ -138,7 +139,7 @@ struct SettingsView: View {
             }
             .padding(.horizontal, 20).padding(.bottom, 24)
         }
-        .background(Color(hex: "#242424"))
+        .background(t.bg)
         .sheet(isPresented: $showAddEnv) {
             EnvironmentFormSheet(environment: $newEnv, title: "Add Environment") {
                 guard !newEnv.name.isEmpty && !newEnv.url.isEmpty else { return }
@@ -165,38 +166,38 @@ struct SettingsView: View {
     @ViewBuilder
     private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         VStack(spacing: 0) { content() }
-            .background(Color(hex: "#1e1e1e"))
+            .background(t.surface)
             .cornerRadius(10)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#2e2e2e"), lineWidth: 1))
-            .shadow(color: .black.opacity(0.45), radius: 8, y: 4)
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(t.border, lineWidth: 1))
+            .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
     }
 
     @ViewBuilder
     private func cardHeader(_ title: String, @ViewBuilder action: () -> some View) -> some View {
         HStack {
             Text(title.uppercased())
-                .font(.system(size: 11, weight: .semibold)).foregroundColor(Color(hex: "#555555")).tracking(0.7)
+                .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary).tracking(0.7)
             Spacer()
             action()
         }
         .padding(.horizontal, 16).padding(.vertical, 10)
-        .background(Color(hex: "#1a1a1a"))
-        .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#272727")), alignment: .bottom)
+        .background(t.surfaceAlt)
+        .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
     }
 
     @ViewBuilder
     private func settingRow<Content: View>(label: String, description: String? = nil, @ViewBuilder content: () -> Content) -> some View {
         HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(label).font(.system(size: 13)).foregroundColor(Color(hex: "#aaaaaa"))
+                Text(label).font(.system(size: 13)).foregroundColor(t.labelText)
                 if let desc = description {
-                    Text(desc).font(.system(size: 11)).foregroundColor(Color(hex: "#4a4a4a"))
+                    Text(desc).font(.system(size: 11)).foregroundStyle(.tertiary)
                 }
             }.frame(width: 160, alignment: .leading)
             content()
         }
         .padding(.horizontal, 16).padding(.vertical, 10)
-        .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#252525")), alignment: .bottom)
+        .overlay(Rectangle().frame(height: 1).foregroundColor(t.divider), alignment: .bottom)
     }
 
     private func pickFile(completion: @escaping (String) -> Void) {

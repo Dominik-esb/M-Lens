@@ -3,27 +3,27 @@ import SwiftUI
 struct TagView: View {
     let text: String
     let style: TagStyle
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     enum TagStyle {
         case namespace, alerting, recording, firing, pending
-
-        var bg: Color {
-            switch self {
-            case .namespace: return Color(hex: "#1a2c40")
-            case .alerting:  return Color(hex: "#2e1515")
-            case .recording: return Color(hex: "#142e14")
-            case .firing:    return Color(hex: "#2e1515")
-            case .pending:   return Color(hex: "#2a2000")
-            }
-        }
         var fg: Color {
             switch self {
             case .namespace: return Color(hex: "#60a5fa")
-            case .alerting:  return Color(hex: "#f87171")
+            case .alerting, .firing: return Color(hex: "#f87171")
             case .recording: return Color(hex: "#4ade80")
-            case .firing:    return Color(hex: "#f87171")
             case .pending:   return Color(hex: "#fbbf24")
             }
+        }
+    }
+
+    private var bg: Color {
+        switch style {
+        case .namespace: return t.tagNsBg
+        case .alerting, .firing: return t.tagAlertBg
+        case .recording: return t.tagRecordBg
+        case .pending:   return t.tagPendBg
         }
     }
 
@@ -31,7 +31,7 @@ struct TagView: View {
         Text(text)
             .font(.system(size: 11, weight: .medium))
             .padding(.horizontal, 8).padding(.vertical, 2)
-            .background(style.bg)
+            .background(bg)
             .foregroundColor(style.fg)
             .cornerRadius(5)
     }

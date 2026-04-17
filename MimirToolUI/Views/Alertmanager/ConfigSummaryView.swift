@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ConfigSummaryView: View {
     let yaml: String
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     private var receivers: [String] {
         yaml.components(separatedBy: "\n")
@@ -19,12 +21,12 @@ struct ConfigSummaryView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text("CONFIG SUMMARY")
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(Color(hex: "#555555"))
+                .foregroundStyle(.secondary)
                 .tracking(0.7)
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(hex: "#1a1a1a"))
-                .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#2a2a2a")), alignment: .bottom)
+                .background(t.surfaceAlt)
+                .overlay(Rectangle().frame(height: 1).foregroundColor(t.headerLine), alignment: .bottom)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
@@ -32,18 +34,18 @@ struct ConfigSummaryView: View {
                         ForEach(receivers, id: \.self) { name in
                             HStack(spacing: 6) {
                                 Circle().fill(Color(hex: "#7ab3f0")).frame(width: 6, height: 6)
-                                Text(name).font(.system(size: 12)).foregroundColor(Color(hex: "#c0c0c0"))
+                                Text(name).font(.system(size: 12)).foregroundColor(t.textSub)
                             }
                         }
                         if receivers.isEmpty {
-                            Text("—").font(.system(size: 12)).foregroundColor(Color(hex: "#444444"))
+                            Text("—").font(.system(size: 12)).foregroundStyle(.tertiary)
                         }
                     }
                 }
                 .padding(14)
             }
         }
-        .background(Color(hex: "#1e1e1e"))
+        .background(t.surface)
         .frame(width: 220)
     }
 
@@ -52,7 +54,7 @@ struct ConfigSummaryView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title.uppercased())
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(Color(hex: "#555555"))
+                .foregroundStyle(.secondary)
                 .tracking(0.6)
             content()
         }

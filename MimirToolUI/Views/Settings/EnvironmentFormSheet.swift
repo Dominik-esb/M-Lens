@@ -5,37 +5,38 @@ struct EnvironmentFormSheet: View {
     let title: String
     let onSave: () -> Void
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
-                Text(title).font(.system(size: 15, weight: .semibold)).foregroundColor(.white)
+                Text(title).font(.system(size: 15, weight: .semibold)).foregroundStyle(.primary)
                 Spacer()
                 Button("Cancel") { dismiss() }.buttonStyle(SecondaryButtonStyle())
                 Button("Save") { onSave(); dismiss() }.buttonStyle(AccentButtonStyle())
             }
             .padding(16)
-            .background(Color(hex: "#1a1a1a"))
-            .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#272727")), alignment: .bottom)
+            .background(t.surfaceAlt)
+            .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
 
             ScrollView {
                 VStack(spacing: 12) {
                     formSection("Connection") {
                         formRow("Name") {
                             TextField("Production", text: $environment.name)
-                                .inputStyle()
+                                .inputStyle(t: t)
                         }
                         formRow("URL") {
                             TextField("https://mimir.example.com", text: $environment.url)
-                                .inputStyle()
+                                .inputStyle(t: t)
                                 .font(.system(size: 13, design: .monospaced))
                         }
                         formRow("Org / Tenant ID") {
                             TextField("optional", text: Binding(
                                 get: { environment.orgID ?? "" },
                                 set: { environment.orgID = $0.isEmpty ? nil : $0 }
-                            )).inputStyle()
+                            )).inputStyle(t: t)
                         }
                     }
 
@@ -48,7 +49,7 @@ struct EnvironmentFormSheet: View {
                                 TextField("", text: Binding(
                                     get: { environment.caCertPath ?? "" },
                                     set: { environment.caCertPath = $0.isEmpty ? nil : $0 }
-                                )).inputStyle()
+                                )).inputStyle(t: t)
                                     .font(.system(size: 13, design: .monospaced))
                                 Button("Browse…") { pickFile { environment.caCertPath = $0 } }
                                     .buttonStyle(SecondaryButtonStyle())
@@ -59,12 +60,12 @@ struct EnvironmentFormSheet: View {
                     formSection("Connection Options") {
                         formRow("Timeout") {
                             TextField("30s", text: $environment.timeout)
-                                .inputStyle()
+                                .inputStyle(t: t)
                                 .frame(width: 100)
                         }
                         formRow("Retries") {
                             TextField("3", value: $environment.retries, format: .number)
-                                .inputStyle()
+                                .inputStyle(t: t)
                                 .frame(width: 100)
                         }
                     }
@@ -73,7 +74,7 @@ struct EnvironmentFormSheet: View {
             }
         }
         .frame(width: 500, height: 480)
-        .background(Color(hex: "#1e1e1e"))
+        .background(t.surface)
     }
 
     @ViewBuilder
@@ -82,19 +83,19 @@ struct EnvironmentFormSheet: View {
             HStack {
                 Text(title.uppercased())
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(Color(hex: "#555555"))
+                    .foregroundStyle(.secondary)
                     .tracking(0.7)
                 Spacer()
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
-            .background(Color(hex: "#1a1a1a"))
-            .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#272727")), alignment: .bottom)
+            .background(t.surfaceAlt)
+            .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
 
             content()
         }
-        .background(Color(hex: "#1e1e1e"))
+        .background(t.surface)
         .cornerRadius(8)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#2e2e2e"), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(t.border, lineWidth: 1))
     }
 
     @ViewBuilder
@@ -102,12 +103,12 @@ struct EnvironmentFormSheet: View {
         HStack(spacing: 12) {
             Text(label)
                 .font(.system(size: 13))
-                .foregroundColor(Color(hex: "#aaaaaa"))
+                .foregroundColor(t.labelText)
                 .frame(width: 130, alignment: .leading)
             content()
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
-        .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#252525")), alignment: .bottom)
+        .overlay(Rectangle().frame(height: 1).foregroundColor(t.divider), alignment: .bottom)
     }
 
     private func pickFile(completion: @escaping (String) -> Void) {
@@ -118,14 +119,14 @@ struct EnvironmentFormSheet: View {
 }
 
 private extension TextField {
-    func inputStyle() -> some View {
+    func inputStyle(t: Theme) -> some View {
         self
             .textFieldStyle(.plain)
-            .foregroundColor(Color(hex: "#d0d0d0"))
+            .foregroundColor(t.textBody)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 10).padding(.vertical, 6)
-            .background(Color(hex: "#272727"))
-            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(hex: "#383838"), lineWidth: 1))
+            .background(t.inputBg)
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(t.borderSub, lineWidth: 1))
             .cornerRadius(6)
     }
 }

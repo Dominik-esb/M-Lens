@@ -3,6 +3,8 @@ import SwiftUI
 struct ErrorBannerView: View {
     let message: String
     let onDismiss: () -> Void
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -13,11 +15,11 @@ struct ErrorBannerView: View {
                 .foregroundColor(Color(hex: "#f87171"))
             Spacer()
             Button(action: onDismiss) {
-                Image(systemName: "xmark").foregroundColor(.gray)
+                Image(systemName: "xmark").foregroundColor(.secondary)
             }.buttonStyle(.plain)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
-        .background(Color(hex: "#261212"))
+        .background(t.errorBg)
         .cornerRadius(8)
         .padding(.horizontal, 4)
     }

@@ -11,7 +11,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            SidebarView(selectedPage: $selectedPage, isDarkMode: $isDarkMode)
+            SidebarView(selectedPage: $selectedPage)
         } detail: {
             if selectedPage == .settings {
                 SettingsView()
@@ -20,16 +20,14 @@ struct ContentView: View {
             } else {
                 VStack(spacing: 12) {
                     Image(systemName: "server.rack")
-                        .font(.system(size: 40)).foregroundColor(.secondary)
+                        .font(.system(size: 40)).foregroundStyle(.secondary)
                     Text("No environment configured")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     Button("Open Settings") { selectedPage = .settings }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(hex: "#242424"))
             }
         }
-        .background(Color(hex: "#242424"))
         .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 

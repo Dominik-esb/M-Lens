@@ -4,6 +4,8 @@ struct AlertsView: View {
     let environment: MimirEnvironment
     @StateObject private var vm: AlertsViewModel
     @State private var selectedAlert: MimirAlert?
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     init(environment: MimirEnvironment) {
         self.environment = environment
@@ -15,17 +17,17 @@ struct AlertsView: View {
             // Header
             HStack(spacing: 10) {
                 Text("Alerts")
-                    .font(.system(size: 20, weight: .semibold)).foregroundColor(.white)
+                    .font(.system(size: 20, weight: .semibold)).foregroundStyle(.primary)
                 Spacer()
                 Toggle("Auto-refresh", isOn: Binding(
                     get: { vm.autoRefresh },
                     set: { vm.setAutoRefresh($0) }
                 ))
                 .toggleStyle(.switch)
-                .font(.system(size: 12)).foregroundColor(Color(hex: "#888888"))
+                .font(.system(size: 12)).foregroundStyle(.secondary)
                 Button { Task { await vm.load() } } label: {
                     Image(systemName: "arrow.clockwise")
-                        .foregroundColor(Color(hex: "#666666"))
+                        .foregroundColor(t.iconColor)
                         .rotationEffect(.degrees(vm.isLoading ? 360 : 0))
                         .animation(vm.isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: vm.isLoading)
                 }.buttonStyle(.plain)
@@ -35,23 +37,23 @@ struct AlertsView: View {
             // Filter bar
             HStack(spacing: 8) {
                 filterChip("All", count: vm.alerts.count, active: vm.filter == .all,
-                           color: Color(hex: "#2b3f5c"), fg: Color(hex: "#7ab3f0")) { vm.filter = .all }
+                           color: t.navActiveBg, fg: Color(hex: "#7ab3f0")) { vm.filter = .all }
                 filterChip("Firing", count: vm.alerts.filter { $0.state == .firing }.count,
                            active: vm.filter == .firing,
-                           color: Color(hex: "#2e1515"), fg: Color(hex: "#f87171")) { vm.filter = .firing }
+                           color: t.tagAlertBg, fg: Color(hex: "#f87171")) { vm.filter = .firing }
                 filterChip("Pending", count: vm.alerts.filter { $0.state == .pending }.count,
                            active: vm.filter == .pending,
-                           color: Color(hex: "#2a2000"), fg: Color(hex: "#fbbf24")) { vm.filter = .pending }
+                           color: t.tagPendBg, fg: Color(hex: "#fbbf24")) { vm.filter = .pending }
                 Spacer()
                 HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass").foregroundColor(Color(hex: "#555555")).font(.system(size: 12))
+                    Image(systemName: "magnifyingglass").foregroundColor(t.textFaint).font(.system(size: 12))
                     TextField("Filter by label…", text: $vm.searchText)
-                        .textFieldStyle(.plain).font(.system(size: 13)).foregroundColor(Color(hex: "#c8c8c8"))
+                        .textFieldStyle(.plain).font(.system(size: 13)).foregroundStyle(.primary)
                         .frame(maxWidth: .infinity)
                 }
                 .padding(.horizontal, 12).padding(.vertical, 5)
-                .background(Color(hex: "#1e1e1e"))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "#333333"), lineWidth: 1))
+                .background(t.searchBg)
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(t.borderSub, lineWidth: 1))
                 .frame(width: 220)
             }
             .padding(.horizontal, 20).padding(.bottom, 12)
@@ -64,7 +66,6 @@ struct AlertsView: View {
 
             // Table
             VStack(spacing: 0) {
-                // Column headers
                 HStack {
                     Text("ALERT NAME").tableHeader().frame(width: 200, alignment: .leading)
                     Text("STATE").tableHeader().frame(width: 80, alignment: .leading)
@@ -73,20 +74,19 @@ struct AlertsView: View {
                     Text("DURATION").tableHeader().frame(width: 80, alignment: .trailing)
                 }
                 .padding(.horizontal, 14).padding(.vertical, 10)
-                .background(Color(hex: "#1a1a1a"))
-                .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#2a2a2a")), alignment: .bottom)
+                .background(t.surfaceAlt)
+                .overlay(Rectangle().frame(height: 1).foregroundColor(t.headerLine), alignment: .bottom)
 
                 ScrollView {
-                    // VStack (not Lazy) so FlowLayout can measure row heights correctly
                     VStack(spacing: 0) {
                         if vm.isLoading && vm.alerts.isEmpty {
                             ProgressView().padding(40)
                         } else if !vm.isLoading && vm.filtered.isEmpty {
                             VStack(spacing: 8) {
                                 Image(systemName: "bell.slash").font(.system(size: 28))
-                                    .foregroundColor(Color(hex: "#3a3a3a"))
+                                    .foregroundStyle(.tertiary)
                                 Text(vm.alerts.isEmpty ? "No alerts found." : "No alerts match the current filter.")
-                                    .foregroundColor(Color(hex: "#444444")).font(.system(size: 13))
+                                    .foregroundStyle(.secondary).font(.system(size: 13))
                             }
                             .padding(40)
                         } else {
@@ -105,13 +105,13 @@ struct AlertsView: View {
                     statusText: vm.lastRefreshed.map { "Refreshed \(timeAgo($0))" } ?? ""
                 )
             }
-            .background(Color(hex: "#1e1e1e"))
+            .background(t.surface)
             .cornerRadius(10)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#2e2e2e"), lineWidth: 1))
-            .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(t.border, lineWidth: 1))
+            .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
             .padding(.horizontal, 20).padding(.bottom, 16)
         }
-        .background(Color(hex: "#242424"))
+        .background(t.bg)
         .task { await vm.load() }
         .sheet(item: $selectedAlert) { alert in
             AlertDetailSheet(alert: alert)
@@ -126,14 +126,14 @@ struct AlertsView: View {
                 Text("\(count)")
                     .font(.system(size: 11, weight: .semibold))
                     .padding(.horizontal, 6).padding(.vertical, 1)
-                    .background(active ? fg.opacity(0.2) : Color(hex: "#303030"))
-                    .foregroundColor(active ? fg : Color(hex: "#666666"))
+                    .background(active ? fg.opacity(0.2) : t.inputBg)
+                    .foregroundColor(active ? fg : t.textMuted)
                     .cornerRadius(8)
             }
             .padding(.horizontal, 12).padding(.vertical, 5)
-            .background(active ? color : Color(hex: "#252525"))
-            .foregroundColor(active ? fg : Color(hex: "#888888"))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(active ? fg.opacity(0.25) : Color(hex: "#333333"), lineWidth: 1))
+            .background(active ? color : t.inputBg)
+            .foregroundColor(active ? fg : t.textMuted)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(active ? fg.opacity(0.25) : t.borderSub, lineWidth: 1))
             .cornerRadius(16)
             .contentShape(Rectangle())
             .animation(.easeInOut(duration: 0.15), value: active)
@@ -154,22 +154,21 @@ private struct AlertRowView: View {
     let alert: MimirAlert
     let onTap: () -> Void
     @State private var isHovered = false
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     var body: some View {
         Button(action: onTap) {
             HStack(alignment: .center, spacing: 0) {
-                // Alert name
                 Text(alert.labels["alertname"] ?? "unknown")
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color(hex: "#d8d8d8"))
+                    .foregroundStyle(.primary)
                     .frame(width: 200, alignment: .leading)
                     .lineLimit(1)
 
-                // State tag
                 TagView(text: alert.state.rawValue, style: alert.state == .firing ? .firing : .pending)
                     .frame(width: 80, alignment: .leading)
 
-                // Labels - wrapped
                 FlowLayout(spacing: 4) {
                     ForEach(
                         alert.labels.filter { $0.key != "alertname" }.sorted { $0.key < $1.key },
@@ -178,29 +177,28 @@ private struct AlertRowView: View {
                         Text("\(pair.key)=\(pair.value)")
                             .font(.system(size: 10, design: .monospaced))
                             .padding(.horizontal, 6).padding(.vertical, 2)
-                            .background(Color(hex: "#252525"))
-                            .foregroundColor(Color(hex: "#777777"))
-                            .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color(hex: "#303030"), lineWidth: 1))
+                            .background(t.inputBg)
+                            .foregroundColor(t.textMuted)
+                            .overlay(RoundedRectangle(cornerRadius: 4).stroke(t.borderSub, lineWidth: 1))
                             .cornerRadius(4)
                     }
                 }
 
                 Spacer(minLength: 8)
 
-                // Duration
                 Text(durationString(from: alert.activeAt))
                     .font(.system(size: 11, design: .monospaced))
-                    .foregroundColor(Color(hex: "#666666"))
+                    .foregroundColor(t.textFaint)
                     .frame(width: 80, alignment: .trailing)
             }
             .padding(.horizontal, 14).padding(.vertical, 10)
-            .background(isHovered ? Color(hex: "#232323") : Color.clear)
+            .background(isHovered ? t.rowHover : Color.clear)
             .contentShape(Rectangle())
             .animation(.easeOut(duration: 0.1), value: isHovered)
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
-        .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#242424")), alignment: .bottom)
+        .overlay(Rectangle().frame(height: 1).foregroundColor(t.rowLine), alignment: .bottom)
     }
 
     private func durationString(from activeAt: String?) -> String {
@@ -218,26 +216,26 @@ private struct AlertRowView: View {
 private struct AlertDetailSheet: View {
     let alert: MimirAlert
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(alert.labels["alertname"] ?? "Alert")
-                        .font(.system(size: 17, weight: .semibold)).foregroundColor(.white)
+                        .font(.system(size: 17, weight: .semibold)).foregroundStyle(.primary)
                     TagView(text: alert.state.rawValue, style: alert.state == .firing ? .firing : .pending)
                 }
                 Spacer()
                 Button("Close") { dismiss() }.buttonStyle(SecondaryButtonStyle())
             }
             .padding(20)
-            .background(Color(hex: "#1a1a1a"))
-            .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#272727")), alignment: .bottom)
+            .background(t.surfaceAlt)
+            .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Duration
                     if let activeAt = alert.activeAt,
                        let date = ISO8601DateFormatter().date(from: activeAt) {
                         detailSection("Timeline") {
@@ -246,23 +244,22 @@ private struct AlertDetailSheet: View {
                         }
                     }
 
-                    // Labels
                     detailSection("Labels") {
                         let sorted = alert.labels.sorted { $0.key < $1.key }
                         ForEach(sorted, id: \.key) { pair in
                             HStack(spacing: 0) {
                                 Text(pair.key)
                                     .font(.system(size: 12, design: .monospaced))
-                                    .foregroundColor(Color(hex: "#888888"))
+                                    .foregroundStyle(.secondary)
                                     .frame(width: 160, alignment: .leading)
                                 Text(pair.value)
                                     .font(.system(size: 12, design: .monospaced))
-                                    .foregroundColor(Color(hex: "#d0d0d0"))
+                                    .foregroundColor(t.textSub)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .textSelection(.enabled)
                             }
                             .padding(.horizontal, 14).padding(.vertical, 7)
-                            .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#252525")), alignment: .bottom)
+                            .overlay(Rectangle().frame(height: 1).foregroundColor(t.divider), alignment: .bottom)
                         }
                     }
                 }
@@ -270,7 +267,7 @@ private struct AlertDetailSheet: View {
             }
         }
         .frame(width: 520, height: 440)
-        .background(Color(hex: "#1e1e1e"))
+        .background(t.surface)
     }
 
     @ViewBuilder
@@ -278,27 +275,27 @@ private struct AlertDetailSheet: View {
         VStack(spacing: 0) {
             HStack {
                 Text(title.uppercased())
-                    .font(.system(size: 10, weight: .semibold)).foregroundColor(Color(hex: "#555555")).tracking(0.7)
+                    .font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary).tracking(0.7)
                 Spacer()
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
-            .background(Color(hex: "#1a1a1a"))
-            .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#272727")), alignment: .bottom)
+            .background(t.surfaceAlt)
+            .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
             content()
         }
-        .background(Color(hex: "#1e1e1e"))
+        .background(t.surface)
         .cornerRadius(8)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#2e2e2e"), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(t.border, lineWidth: 1))
     }
 
     private func detailRow(_ label: String, value: String) -> some View {
         HStack {
-            Text(label).font(.system(size: 12)).foregroundColor(Color(hex: "#888888")).frame(width: 120, alignment: .leading)
-            Text(value).font(.system(size: 12)).foregroundColor(Color(hex: "#d0d0d0")).textSelection(.enabled)
+            Text(label).font(.system(size: 12)).foregroundStyle(.secondary).frame(width: 120, alignment: .leading)
+            Text(value).font(.system(size: 12)).foregroundColor(t.textSub).textSelection(.enabled)
             Spacer()
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
-        .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#252525")), alignment: .bottom)
+        .overlay(Rectangle().frame(height: 1).foregroundColor(t.divider), alignment: .bottom)
     }
 
     private func formatDate(_ date: Date) -> String {
@@ -347,7 +344,6 @@ struct FlowLayout: Layout {
 // MARK: - MimirAlert helpers
 
 extension MimirAlert {
-    /// Stable unique ID combining alertname + sorted labels
     var uniqueID: String {
         let sorted = labels.sorted { $0.key < $1.key }.map { "\($0.key)=\($0.value)" }.joined(separator: ",")
         return "\(state.rawValue)|\(sorted)"

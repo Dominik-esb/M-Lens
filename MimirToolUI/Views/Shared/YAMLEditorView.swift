@@ -4,6 +4,7 @@ import AppKit
 struct YAMLEditorView: NSViewRepresentable {
     @Binding var text: String
     @Binding var hasChanges: Bool
+    @Environment(\.colorScheme) var colorScheme
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSTextView.scrollableTextView()
@@ -12,18 +13,27 @@ struct YAMLEditorView: NSViewRepresentable {
         textView.isEditable = true
         textView.isRichText = false
         textView.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
-        textView.backgroundColor = NSColor(red: 0.118, green: 0.118, blue: 0.118, alpha: 1)
-        textView.textColor = NSColor(red: 0.784, green: 0.784, blue: 0.784, alpha: 1)
         textView.textContainerInset = NSSize(width: 14, height: 14)
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.string = text
+        applyColors(to: textView, theme: Theme(colorScheme))
         return scrollView
     }
 
     func updateNSView(_ nsView: NSScrollView, context: Context) {
         let textView = nsView.documentView as! NSTextView
         if textView.string != text { textView.string = text }
+        applyColors(to: textView, theme: Theme(colorScheme))
+    }
+
+    private func applyColors(to textView: NSTextView, theme: Theme) {
+        textView.backgroundColor = theme.editorBg
+        textView.textColor = theme.editorFg
+        if let scrollView = textView.enclosingScrollView {
+            scrollView.backgroundColor = theme.editorBg
+            scrollView.drawsBackground = true
+        }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
