@@ -36,3 +36,4 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mimirtool.MimirToolUITests
+        GENERATE_INFOPLIST_FILE: YES
