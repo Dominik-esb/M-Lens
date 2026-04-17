@@ -9,6 +9,10 @@ struct AlertmanagerView: View {
     @Environment(\.colorScheme) var colorScheme
     private var t: Theme { Theme(colorScheme) }
 
+    @State private var diagnostics: [YAMLDiagnostic] = []
+    @State private var isChecking = false
+    @State private var lintTask: Task<Void, Never>?
+
     init(environment: MimirEnvironment) {
         self.environment = environment
         _vm = StateObject(wrappedValue: AlertmanagerViewModel(
@@ -19,6 +23,7 @@ struct AlertmanagerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Page header
             HStack(spacing: 10) {
                 Text("Alertmanager").font(.system(size: 20, weight: .semibold)).foregroundStyle(.primary)
                 Spacer()
@@ -28,6 +33,7 @@ struct AlertmanagerView: View {
             }
             .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 12)
 
+            // Action bar
             HStack(spacing: 8) {
                 Button { showFilePicker = true } label: {
                     Label("Upload Config", systemImage: "arrow.up").font(.system(size: 12))
@@ -42,7 +48,9 @@ struct AlertmanagerView: View {
 
                 Button { Task { await vm.push() } } label: {
                     Label("Push to Mimir", systemImage: "arrow.up.circle").font(.system(size: 12))
-                }.buttonStyle(AccentButtonStyle())
+                }
+                .buttonStyle(AccentButtonStyle())
+                .disabled(!diagnostics.isEmpty)
 
                 Spacer()
 
@@ -58,7 +66,9 @@ struct AlertmanagerView: View {
             }
 
             HStack(spacing: 12) {
+                // Editor card
                 VStack(spacing: 0) {
+                    // File title bar
                     HStack {
                         Text("alertmanager.yaml")
                             .font(.system(size: 12)).foregroundStyle(.secondary)
@@ -72,7 +82,11 @@ struct AlertmanagerView: View {
                     .background(t.surfaceAlt)
                     .overlay(Rectangle().frame(height: 1).foregroundColor(t.headerLine), alignment: .bottom)
 
-                    YAMLEditorView(text: $vm.configYAML, hasChanges: $vm.hasUnsavedChanges)
+                    // Lint status strip
+                    LintStatusView(diagnostics: diagnostics, isChecking: isChecking)
+
+                    YAMLEditorView(text: $vm.configYAML, hasChanges: $vm.hasUnsavedChanges,
+                                   diagnostics: diagnostics)
 
                     StatusBarView(environment: environment,
                                   statusText: "\(vm.configYAML.components(separatedBy: "\n").count) lines")
@@ -91,12 +105,30 @@ struct AlertmanagerView: View {
         }
         .background(t.bg)
         .task { await vm.load() }
+        .task { await runLint() }
+        .onChange(of: vm.configYAML) { _ in scheduleLint() }
         .alert("Delete Alertmanager Config?", isPresented: $showDeleteConfirm) {
             Button("Delete", role: .destructive) { Task { await vm.delete() } }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This will remove the alertmanager configuration for this environment.")
         }
+    }
+
+    private func scheduleLint() {
+        lintTask?.cancel()
+        lintTask = Task {
+            isChecking = true
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled else { return }
+            await runLint()
+        }
+    }
+
+    private func runLint() async {
+        isChecking = true
+        diagnostics = await YAMLLinter.lint(vm.configYAML)
+        isChecking = false
     }
 }
 
