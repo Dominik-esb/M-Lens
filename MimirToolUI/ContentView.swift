@@ -7,10 +7,11 @@ enum AppPage: Hashable {
 struct ContentView: View {
     @EnvironmentObject var envStore: EnvironmentStore
     @State private var selectedPage: AppPage = .rules
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = true
 
     var body: some View {
         NavigationSplitView {
-            SidebarView(selectedPage: $selectedPage)
+            SidebarView(selectedPage: $selectedPage, isDarkMode: $isDarkMode)
         } detail: {
             if selectedPage == .settings {
                 SettingsView()
@@ -29,6 +30,7 @@ struct ContentView: View {
             }
         }
         .background(Color(hex: "#242424"))
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 
     @ViewBuilder
