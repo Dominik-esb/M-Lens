@@ -36,6 +36,15 @@ brew install mimirtool
 
 ## Installation
 
+### Homebrew (recommended)
+
+```bash
+brew tap Dominik-esb/tap
+brew install --cask mimirlens
+```
+
+> **Note:** The app is not yet notarized. On first launch, right-click → **Open** to bypass Gatekeeper.
+
 ### Build from source
 
 1. Clone the repo:
