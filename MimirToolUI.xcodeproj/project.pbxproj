@@ -14,6 +14,8 @@
 		22EDF091E5D10B5EC0175939 /* MimirToolUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F75510D3A8DBC2E05C0687 /* MimirToolUIApp.swift */; };
 		27D551B07B0B06A8C582E9A6 /* MimirToolUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289EB8C1B22E6B2D8C9EDE34 /* MimirToolUITests.swift */; };
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* MimirtoolRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C4D5E6F7A8B9C0D1E2F3A4 /* MimirtoolRunnerTests.swift */; };
+		C5D6E7F8A9B0C1D2E3F4A5B6 /* EnvironmentStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7E8F9A0B1C2D3E4F5A6B7C8 /* EnvironmentStoreTests.swift */; };
+		E1F2A3B4C5D6E7F8A9B0C1D2 /* AlertsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A4B5C6D7E8F9A0B1C2D3E4 /* AlertsServiceTests.swift */; };
 		2D9FA74F591A52795639197E /* MimirEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B21C2F10BDA758469022C6D /* MimirEnvironment.swift */; };
 		385309BF50B43AA1EDD5A461 /* AlertsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9619321A04FD26A173207C /* AlertsViewModel.swift */; };
 		45F09B8FDB862A28B0F5FA27 /* AlertmanagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63C97FA393FEC50F9F3173BB /* AlertmanagerView.swift */; };
@@ -58,6 +60,8 @@
 		24D4A3F17BE380EF53136638 /* RemoteReadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteReadViewModel.swift; sourceTree = "<group>"; };
 		289EB8C1B22E6B2D8C9EDE34 /* MimirToolUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MimirToolUITests.swift; sourceTree = "<group>"; };
 		B3C4D5E6F7A8B9C0D1E2F3A4 /* MimirtoolRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MimirtoolRunnerTests.swift; sourceTree = "<group>"; };
+		D7E8F9A0B1C2D3E4F5A6B7C8 /* EnvironmentStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentStoreTests.swift; sourceTree = "<group>"; };
+		F3A4B5C6D7E8F9A0B1C2D3E4 /* AlertsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsServiceTests.swift; sourceTree = "<group>"; };
 		2C734CB6F6A012629115FE81 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		36F9F817FA5E4DBD45FC75D7 /* RuleEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEditorSheet.swift; sourceTree = "<group>"; };
 		435255EBE47098B1A75120AD /* MimirToolUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MimirToolUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -126,6 +130,8 @@
 			children = (
 				289EB8C1B22E6B2D8C9EDE34 /* MimirToolUITests.swift */,
 				B3C4D5E6F7A8B9C0D1E2F3A4 /* MimirtoolRunnerTests.swift */,
+				D7E8F9A0B1C2D3E4F5A6B7C8 /* EnvironmentStoreTests.swift */,
+				F3A4B5C6D7E8F9A0B1C2D3E4 /* AlertsServiceTests.swift */,
 			);
 			path = MimirToolUITests;
 			sourceTree = "<group>";
@@ -318,6 +324,8 @@
 			files = (
 				27D551B07B0B06A8C582E9A6 /* MimirToolUITests.swift in Sources */,
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* MimirtoolRunnerTests.swift in Sources */,
+				C5D6E7F8A9B0C1D2E3F4A5B6 /* EnvironmentStoreTests.swift in Sources */,
+				E1F2A3B4C5D6E7F8A9B0C1D2 /* AlertsServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
