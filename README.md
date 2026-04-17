@@ -8,7 +8,7 @@ A native macOS application that provides a graphical interface for [mimirtool](h
 
 ![Rules view showing recording rules across namespaces](docs/screenshots/rules.png)
 
-![Settings view with environment management and binary detection](docs/screenshots/settings.png)
+![Settings view with environment management and binary detection](docs/screenshots/settings-2.png)
 
 ---
 
