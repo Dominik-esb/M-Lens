@@ -18,6 +18,7 @@ targets:
       - path: MimirToolUI
     settings:
       base:
+        PRODUCT_NAME: MimirLens
         PRODUCT_BUNDLE_IDENTIFIER: com.mimirtool.MimirToolUI
         INFOPLIST_FILE: MimirToolUI/Info.plist
     entitlements:
