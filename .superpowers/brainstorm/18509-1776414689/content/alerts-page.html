@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MimirTool — Alerts Page</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #161616;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px;
+    min-height: 100vh;
+  }
+  h2 { color: #fff; font-size: 15px; margin-bottom: 4px; text-align: center; }
+  .subtitle { color: #666; font-size: 12px; margin-bottom: 24px; text-align: center; }
+
+  .app-window {
+    width: 920px; height: 620px;
+    background: #242424;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #2e2e2e;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  }
+  .titlebar {
+    height: 40px; background: #242424; border-bottom: 1px solid #2e2e2e;
+    display: flex; align-items: center; padding: 0 16px; gap: 8px; flex-shrink: 0;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.red { background: #ff5f57; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #28c840; }
+  .titlebar-title { flex: 1; text-align: center; font-size: 13px; font-weight: 500; color: #777; margin-left: -60px; }
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    width: 230px; background: #1e1e1e; border-right: 1px solid #2a2a2a;
+    display: flex; flex-direction: column; padding: 16px 0 0; flex-shrink: 0;
+  }
+  .env-chip { display: flex; align-items: center; gap: 10px; margin: 0 12px 18px; padding: 10px 12px; background: #2a2a2a; border-radius: 9px; border: 1px solid #333; cursor: pointer; }
+  .env-icon { font-size: 18px; } .env-text { flex: 1; min-width: 0; } .chevron { color: #555; font-size: 11px; }
+  .env-name { font-size: 13px; font-weight: 600; color: #e8e8e8; }
+  .env-url { font-size: 10px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .sec-label { font-size: 10px; font-weight: 700; color: #4a4a4a; text-transform: uppercase; letter-spacing: 0.08em; padding: 0 16px; margin: 8px 0 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 7px 12px; margin: 1px 8px; font-size: 13px; color: #888; border-radius: 7px; cursor: pointer; }
+  .nav-item:hover { background: #2a2a2a; color: #ccc; }
+  .nav-item.active { background: #2b3f5c; color: #7ab3f0; }
+  .nav-icon { font-size: 14px; width: 16px; text-align: center; opacity: 0.85; }
+  .nav-count { margin-left: auto; font-size: 11px; background: #2e2e2e; color: #666; padding: 1px 7px; border-radius: 10px; font-weight: 500; }
+  .nav-item.active .nav-count { background: #1d3350; color: #7ab3f0; }
+  .nav-count.firing { background: #2e1515; color: #f87171; }
+  .sidebar-spacer { flex: 1; }
+  .sidebar-footer { border-top: 1px solid #282828; padding: 8px 0; }
+  .footer-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; font-size: 12px; color: #555; }
+  .footer-btn { width: 28px; height: 28px; background: #2a2a2a; border: 1px solid #333; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #666; font-size: 13px; }
+
+  .content { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 16px; gap: 12px; overflow: hidden; background: #242424; }
+  .content-header { display: flex; align-items: center; gap: 10px; }
+  .content-title { font-size: 20px; font-weight: 600; color: #fff; flex: 1; }
+  .icon-btn { width: 30px; height: 30px; background: none; border: none; border-radius: 7px; color: #666; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  .filter-bar { display: flex; gap: 8px; align-items: center; }
+  .search-pill { display: flex; align-items: center; gap: 6px; background: #1e1e1e; border: 1px solid #333; border-radius: 20px; padding: 5px 14px; font-size: 13px; color: #555; width: 220px; }
+  .filter-chip { font-size: 12px; padding: 4px 12px; border-radius: 16px; border: 1px solid #333; background: #2a2a2a; color: #888; cursor: pointer; }
+  .filter-chip.active-firing { background: #2e1515; border-color: #4a2020; color: #f87171; }
+  .filter-chip.active-pending { background: #2a2000; border-color: #4a3800; color: #fbbf24; }
+  .filter-chip.active-all { background: #2b3f5c; border-color: #3a5070; color: #7ab3f0; }
+
+  .table-card {
+    flex: 1; background: #1e1e1e; border: 1px solid #2e2e2e; border-radius: 10px;
+    overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+  }
+  .table-scroll { flex: 1; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; font-size: 11px; font-weight: 600; color: #555;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    padding: 10px 14px; border-bottom: 1px solid #2a2a2a;
+    background: #1e1e1e; position: sticky; top: 0;
+  }
+  tbody td { padding: 11px 14px; font-size: 13px; color: #c8c8c8; border-bottom: 1px solid #252525; vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #242424; }
+
+  .state-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px; display: inline-flex; align-items: center; gap: 4px; }
+  .state-badge.firing  { background: #2e1515; color: #f87171; }
+  .state-badge.pending { background: #2a2000; color: #fbbf24; }
+  .state-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+  .state-dot.firing  { background: #f87171; }
+  .state-dot.pending { background: #fbbf24; }
+
+  .label-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+  .label-pill { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #252525; color: #666; border: 1px solid #303030; font-family: 'SF Mono', monospace; }
+
+  .duration { font-size: 12px; color: #666; }
+  .table-footer {
+    border-top: 1px solid #2a2a2a; padding: 8px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: #444; background: #1a1a1a;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; margin-right: 5px; }
+  .last-refresh { font-size: 11px; color: #3a3a3a; }
+</style>
+</head>
+<body>
+<h2>MimirTool — Alerts Page</h2>
+<p class="subtitle">Firing & pending alerts with labels, state, and duration</p>
+
+<div class="app-window">
+  <div class="titlebar">
+    <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+    <div class="titlebar-title">MimirTool</div>
+  </div>
+  <div class="main">
+    <div class="sidebar">
+      <div class="env-chip">
+        <div class="env-icon">🟢</div>
+        <div class="env-text"><div class="env-name">Production</div><div class="env-url">mimir.mycompany.com</div></div>
+        <div class="chevron">⌄</div>
+      </div>
+      <div class="sec-label">Views</div>
+      <div class="nav-item"><span class="nav-icon">📋</span> Rules <span class="nav-count">42</span></div>
+      <div class="nav-item"><span class="nav-icon">🔔</span> Alertmanager</div>
+      <div class="nav-item active"><span class="nav-icon">⚡</span> Alerts <span class="nav-count firing">3</span></div>
+      <div class="nav-item"><span class="nav-icon">🔍</span> Remote Read</div>
+      <div class="sec-label" style="margin-top:14px">Tools</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span> Settings</div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer">
+        <div class="footer-row"><span>↺ Refresh</span><span style="font-size:10px">⌘⇧R</span></div>
+        <div class="footer-row"><span style="font-size:10px;color:#3a3a3a">mimirtool v0.16.1</span><div class="footer-btn">☀</div></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-header">
+        <div class="content-title">Alerts</div>
+        <button class="icon-btn">↺</button>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-chip active-all">All (5)</div>
+        <div class="filter-chip active-firing">Firing (3)</div>
+        <div class="filter-chip active-pending">Pending (2)</div>
+        <div class="search-pill" style="margin-left:auto">🔍 Filter by label…</div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Alert Name</th>
+                <th>State</th>
+                <th>Labels</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500">NodeHighCPU</td>
+                <td><span class="state-badge firing"><span class="state-dot firing"></span>Firing</span></td>
+                <td>
+                  <div class="label-pills">
+                    <span class="label-pill">severity=critical</span>
+                    <span class="label-pill">instance=node-01</span>
+                    <span class="label-pill">namespace=infra</span>
+                  </div>
+                </td>
+                <td><span class="duration">2h 14m</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500">ServiceErrorBudgetBurn</td>
+                <td><span class="state-badge firing"><span class="state-dot firing"></span>Firing</span></td>
+                <td>
+                  <div class="label-pills">
+                    <span class="label-pill">severity=critical</span>
+                    <span class="label-pill">service=api</span>
+                    <span class="label-pill">namespace=slo</span>
+                  </div>
+                </td>
+                <td><span class="duration">38m</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500">HighP99Latency</td>
+                <td><span class="state-badge firing"><span class="state-dot firing"></span>Firing</span></td>
+                <td>
+                  <div class="label-pills">
+                    <span class="label-pill">severity=warning</span>
+                    <span class="label-pill">service=checkout</span>
+                    <span class="label-pill">namespace=app</span>
+                  </div>
+                </td>
+                <td><span class="duration">7m</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500">NodeMemoryPressure</td>
+                <td><span class="state-badge pending"><span class="state-dot pending"></span>Pending</span></td>
+                <td>
+                  <div class="label-pills">
+                    <span class="label-pill">severity=warning</span>
+                    <span class="label-pill">instance=node-03</span>
+                  </div>
+                </td>
+                <td><span class="duration">3m</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500">DiskUsageHigh</td>
+                <td><span class="state-badge pending"><span class="state-dot pending"></span>Pending</span></td>
+                <td>
+                  <div class="label-pills">
+                    <span class="label-pill">severity=warning</span>
+                    <span class="label-pill">device=/dev/sda1</span>
+                    <span class="label-pill">instance=node-02</span>
+                  </div>
+                </td>
+                <td><span class="duration">1m</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span><span class="status-dot"></span>Connected · Production</span>
+          <span class="last-refresh">Last refreshed: just now</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

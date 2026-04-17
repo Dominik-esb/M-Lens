@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MimirTool — Settings Page</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #161616;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    color: #e0e0e0;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px 24px; min-height: 100vh;
+  }
+  h2 { color: #fff; font-size: 15px; margin-bottom: 4px; text-align: center; }
+  .subtitle { color: #666; font-size: 12px; margin-bottom: 24px; text-align: center; }
+
+  .app-window {
+    width: 920px; height: 620px; background: #242424;
+    border-radius: 12px; overflow: hidden; border: 1px solid #2e2e2e;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  }
+  .titlebar {
+    height: 40px; background: #242424; border-bottom: 1px solid #2e2e2e;
+    display: flex; align-items: center; padding: 0 16px; gap: 8px; flex-shrink: 0;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.red { background: #ff5f57; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #28c840; }
+  .titlebar-title { flex: 1; text-align: center; font-size: 13px; font-weight: 500; color: #777; margin-left: -60px; }
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 230px; background: #1e1e1e; border-right: 1px solid #2a2a2a; display: flex; flex-direction: column; padding: 16px 0 0; flex-shrink: 0; }
+  .env-chip { display: flex; align-items: center; gap: 10px; margin: 0 12px 18px; padding: 10px 12px; background: #2a2a2a; border-radius: 9px; border: 1px solid #333; cursor: pointer; }
+  .env-icon { font-size: 18px; } .env-text { flex: 1; min-width: 0; } .chevron { color: #555; font-size: 11px; }
+  .env-name { font-size: 13px; font-weight: 600; color: #e8e8e8; }
+  .env-url { font-size: 10px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .sec-label { font-size: 10px; font-weight: 700; color: #4a4a4a; text-transform: uppercase; letter-spacing: 0.08em; padding: 0 16px; margin: 8px 0 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 7px 12px; margin: 1px 8px; font-size: 13px; color: #888; border-radius: 7px; cursor: pointer; }
+  .nav-item:hover { background: #2a2a2a; color: #ccc; }
+  .nav-item.active { background: #2b3f5c; color: #7ab3f0; }
+  .nav-icon { font-size: 14px; width: 16px; text-align: center; opacity: 0.85; }
+  .nav-count { margin-left: auto; font-size: 11px; background: #2e2e2e; color: #666; padding: 1px 7px; border-radius: 10px; }
+  .nav-count.firing { background: #2e1515; color: #f87171; }
+  .sidebar-spacer { flex: 1; }
+  .sidebar-footer { border-top: 1px solid #282828; padding: 8px 0; }
+  .footer-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; font-size: 12px; color: #555; }
+  .footer-btn { width: 28px; height: 28px; background: #2a2a2a; border: 1px solid #333; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #666; font-size: 13px; }
+
+  /* Content */
+  .content { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 16px; gap: 14px; overflow-y: auto; background: #242424; }
+  .content-title { font-size: 20px; font-weight: 600; color: #fff; }
+
+  /* Settings section card */
+  .settings-card {
+    background: #1e1e1e;
+    border: 1px solid #2e2e2e;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+    flex-shrink: 0;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid #272727;
+    background: #1a1a1a;
+  }
+  .card-title { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.07em; }
+  .card-action { font-size: 12px; color: #7ab3f0; cursor: pointer; background: none; border: none; }
+
+  /* Environment list */
+  .env-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #252525;
+  }
+  .env-row:last-child { border-bottom: none; }
+  .env-row:hover { background: #222; }
+  .env-indicator { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .env-indicator.active { background: #4ade80; box-shadow: 0 0 5px rgba(74,222,128,0.4); }
+  .env-indicator.inactive { background: #444; }
+  .env-row-name { font-size: 13px; font-weight: 500; color: #d0d0d0; width: 110px; flex-shrink: 0; }
+  .env-row-url { font-size: 12px; color: #555; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'SF Mono', monospace; }
+  .env-row-tenant { font-size: 11px; color: #444; width: 90px; text-align: right; flex-shrink: 0; }
+  .row-btn-group { display: flex; gap: 5px; flex-shrink: 0; }
+  .row-btn { width: 26px; height: 26px; background: none; border: 1px solid #333; border-radius: 6px; color: #555; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .row-btn:hover { background: #2a2a2a; color: #bbb; }
+  .row-btn.del:hover { background: #2e1515; color: #f87171; border-color: #4a2020; }
+  .active-badge { font-size: 10px; background: #142e14; color: #4ade80; border: 1px solid #1e4020; padding: 1px 7px; border-radius: 4px; margin-left: 6px; }
+
+  /* Form rows inside cards */
+  .setting-row {
+    display: flex; align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid #252525;
+    gap: 14px;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label { font-size: 13px; color: #aaa; width: 160px; flex-shrink: 0; }
+  .setting-desc { font-size: 11px; color: #4a4a4a; margin-top: 2px; }
+  .setting-label-wrap { width: 160px; flex-shrink: 0; }
+  .setting-input {
+    flex: 1; background: #272727; border: 1px solid #333; border-radius: 7px;
+    color: #d0d0d0; font-size: 13px; padding: 5px 10px;
+    font-family: 'SF Mono', monospace;
+  }
+  .setting-input.short { flex: none; width: 120px; }
+  .toggle {
+    width: 36px; height: 20px; background: #333; border-radius: 10px;
+    position: relative; cursor: pointer; flex-shrink: 0;
+  }
+  .toggle.on { background: #1e3a6e; border: 1px solid #2a4d8a; }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%; background: #666;
+  }
+  .toggle.on::after { left: 18px; background: #7ab3f0; }
+  .select-input {
+    background: #272727; border: 1px solid #333; border-radius: 7px;
+    color: #d0d0d0; font-size: 13px; padding: 5px 10px;
+    width: 120px;
+  }
+  .path-row { display: flex; gap: 8px; align-items: center; flex: 1; }
+  .detect-badge { font-size: 11px; color: #4ade80; background: #142e14; border: 1px solid #1e4020; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
+  .btn { display: flex; align-items: center; gap: 4px; background: #2e2e2e; border: 1px solid #3a3a3a; border-radius: 7px; color: #aaa; font-size: 12px; padding: 4px 10px; cursor: pointer; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<h2>MimirTool — Settings Page</h2>
+<p class="subtitle">Environments, binary path, TLS, timeouts, log level</p>
+
+<div class="app-window">
+  <div class="titlebar">
+    <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+    <div class="titlebar-title">MimirTool</div>
+  </div>
+  <div class="main">
+    <div class="sidebar">
+      <div class="env-chip">
+        <div class="env-icon">🟢</div>
+        <div class="env-text"><div class="env-name">Production</div><div class="env-url">mimir.mycompany.com</div></div>
+        <div class="chevron">⌄</div>
+      </div>
+      <div class="sec-label">Views</div>
+      <div class="nav-item"><span class="nav-icon">📋</span> Rules <span class="nav-count">42</span></div>
+      <div class="nav-item"><span class="nav-icon">🔔</span> Alertmanager</div>
+      <div class="nav-item"><span class="nav-icon">⚡</span> Alerts <span class="nav-count firing">3</span></div>
+      <div class="nav-item"><span class="nav-icon">🔍</span> Remote Read</div>
+      <div class="sec-label" style="margin-top:14px">Tools</div>
+      <div class="nav-item active"><span class="nav-icon">⚙️</span> Settings</div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer">
+        <div class="footer-row"><span>↺ Refresh</span><span style="font-size:10px">⌘⇧R</span></div>
+        <div class="footer-row"><span style="font-size:10px;color:#3a3a3a">mimirtool v0.16.1</span><div class="footer-btn">☀</div></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-title">Settings</div>
+
+      <!-- Environments -->
+      <div class="settings-card">
+        <div class="card-header">
+          <span class="card-title">Environments</span>
+          <button class="card-action">+ Add Environment</button>
+        </div>
+        <div class="env-row">
+          <div class="env-indicator active"></div>
+          <div class="env-row-name">Production <span class="active-badge">active</span></div>
+          <div class="env-row-url">https://mimir.mycompany.com</div>
+          <div class="env-row-tenant">ops-team</div>
+          <div class="row-btn-group">
+            <button class="row-btn" title="Edit">✏</button>
+            <button class="row-btn del" title="Delete">✕</button>
+          </div>
+        </div>
+        <div class="env-row">
+          <div class="env-indicator inactive"></div>
+          <div class="env-row-name">Staging</div>
+          <div class="env-row-url">https://mimir-staging.mycompany.com</div>
+          <div class="env-row-tenant">ops-team</div>
+          <div class="row-btn-group">
+            <button class="row-btn">✏</button>
+            <button class="row-btn del">✕</button>
+          </div>
+        </div>
+        <div class="env-row">
+          <div class="env-indicator inactive"></div>
+          <div class="env-row-name">Dev</div>
+          <div class="env-row-url">http://localhost:9009</div>
+          <div class="env-row-tenant">—</div>
+          <div class="row-btn-group">
+            <button class="row-btn">✏</button>
+            <button class="row-btn del">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- mimirtool binary -->
+      <div class="settings-card">
+        <div class="card-header">
+          <span class="card-title">mimirtool Binary</span>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label-wrap">
+            <div class="setting-label">Binary Path</div>
+            <div class="setting-desc">Auto-detected or custom</div>
+          </div>
+          <div class="path-row">
+            <input class="setting-input" value="/opt/homebrew/bin/mimirtool" />
+            <span class="detect-badge">✓ detected</span>
+            <button class="btn">Browse…</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TLS + Connection -->
+      <div class="settings-card">
+        <div class="card-header">
+          <span class="card-title">TLS &amp; Connection</span>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label-wrap">
+            <div class="setting-label">Skip TLS Verify</div>
+            <div class="setting-desc">Insecure — skip cert check</div>
+          </div>
+          <div class="toggle"></div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label-wrap">
+            <div class="setting-label">CA Cert Path</div>
+            <div class="setting-desc">Custom CA certificate</div>
+          </div>
+          <div class="path-row">
+            <input class="setting-input" placeholder="/path/to/ca.crt" style="color:#444" />
+            <button class="btn">Browse…</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label-wrap">
+            <div class="setting-label">Timeout</div>
+            <div class="setting-desc">Request timeout</div>
+          </div>
+          <input class="setting-input short" value="30s" />
+        </div>
+        <div class="setting-row">
+          <div class="setting-label-wrap">
+            <div class="setting-label">Retries</div>
+            <div class="setting-desc">Max retry attempts</div>
+          </div>
+          <input class="setting-input short" value="3" />
+        </div>
+      </div>
+
+      <!-- General -->
+      <div class="settings-card">
+        <div class="card-header">
+          <span class="card-title">General</span>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label-wrap">
+            <div class="setting-label">Log Level</div>
+          </div>
+          <select class="select-input">
+            <option>info</option>
+            <option>debug</option>
+            <option>warn</option>
+            <option>error</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label-wrap">
+            <div class="setting-label">Verbose Output</div>
+            <div class="setting-desc">Show raw mimirtool output</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

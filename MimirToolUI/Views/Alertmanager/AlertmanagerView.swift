@@ -1,1 +1,112 @@
-import SwiftUI // TODO: implement
+import SwiftUI
+import UniformTypeIdentifiers
+
+struct AlertmanagerView: View {
+    let environment: MimirEnvironment
+    @StateObject private var vm: AlertmanagerViewModel
+    @State private var showDeleteConfirm = false
+    @State private var showFilePicker = false
+
+    init(environment: MimirEnvironment) {
+        self.environment = environment
+        _vm = StateObject(wrappedValue: AlertmanagerViewModel(
+            runner: MimirtoolRunner.fromAppStorage(),
+            environment: environment
+        ))
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 10) {
+                Text("Alertmanager").font(.system(size: 20, weight: .semibold)).foregroundColor(.white)
+                Spacer()
+                Button { Task { await vm.load() } } label: {
+                    Image(systemName: "arrow.clockwise").foregroundColor(Color(hex: "#666666"))
+                }.buttonStyle(.plain)
+            }
+            .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 12)
+
+            HStack(spacing: 8) {
+                Button { showFilePicker = true } label: {
+                    Label("Upload Config", systemImage: "arrow.up").font(.system(size: 12))
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .fileImporter(isPresented: $showFilePicker, allowedContentTypes: [.yaml]) { result in
+                    if case .success(let url) = result {
+                        vm.configYAML = (try? String(contentsOf: url)) ?? ""
+                        vm.hasUnsavedChanges = true
+                    }
+                }
+
+                Button { Task { await vm.push() } } label: {
+                    Label("Push to Mimir", systemImage: "arrow.up.circle").font(.system(size: 12))
+                }.buttonStyle(AccentButtonStyle())
+
+                Spacer()
+
+                Button { showDeleteConfirm = true } label: {
+                    Label("Delete Config", systemImage: "trash").font(.system(size: 12))
+                }.buttonStyle(DangerButtonStyle())
+            }
+            .padding(.horizontal, 20).padding(.bottom, 12)
+
+            if let err = vm.errorMessage {
+                ErrorBannerView(message: err) { vm.errorMessage = nil }
+                    .padding(.horizontal, 20).padding(.bottom, 8)
+            }
+
+            HStack(spacing: 12) {
+                // Editor card
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("alertmanager.yaml")
+                            .font(.system(size: 12)).foregroundColor(Color(hex: "#888888"))
+                        Spacer()
+                        if vm.hasUnsavedChanges {
+                            Text("Unsaved changes")
+                                .font(.system(size: 11)).foregroundColor(Color(hex: "#fbbf24"))
+                        }
+                    }
+                    .padding(.horizontal, 14).padding(.vertical, 8)
+                    .background(Color(hex: "#1a1a1a"))
+                    .overlay(Rectangle().frame(height: 1).foregroundColor(Color(hex: "#2a2a2a")), alignment: .bottom)
+
+                    YAMLEditorView(text: $vm.configYAML, hasChanges: $vm.hasUnsavedChanges)
+
+                    StatusBarView(environment: environment,
+                                  statusText: "\(vm.configYAML.components(separatedBy: "\n").count) lines")
+                }
+                .background(Color(hex: "#1e1e1e"))
+                .cornerRadius(10)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#2e2e2e"), lineWidth: 1))
+                .shadow(color: .black.opacity(0.45), radius: 8, y: 4)
+
+                ConfigSummaryView(yaml: vm.configYAML)
+                    .cornerRadius(10)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#2e2e2e"), lineWidth: 1))
+                    .shadow(color: .black.opacity(0.45), radius: 8, y: 4)
+            }
+            .padding(.horizontal, 20).padding(.bottom, 16)
+        }
+        .background(Color(hex: "#242424"))
+        .task { await vm.load() }
+        .alert("Delete Alertmanager Config?", isPresented: $showDeleteConfirm) {
+            Button("Delete", role: .destructive) { Task { await vm.delete() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will remove the alertmanager configuration for this environment.")
+        }
+    }
+}
+
+struct DangerButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 12).padding(.vertical, 5)
+            .background(Color(hex: "#2e1515"))
+            .foregroundColor(Color(hex: "#f87171"))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#4a2020"), lineWidth: 1))
+            .cornerRadius(8)
+            .opacity(configuration.isPressed ? 0.8 : 1)
+    }
+}

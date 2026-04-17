@@ -1,0 +1,14 @@
+{"type":"server-started","port":62349,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:62349","screen_dir":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content","state_dir":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/state"}
+{"type":"screen-added","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/app-layout.html"}
+{"type":"screen-added","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/app-layout-v2.html"}
+{"type":"screen-added","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/app-layout-v3.html"}
+{"type":"screen-added","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/app-layout-v4.html"}
+{"type":"screen-added","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/alertmanager-page.html"}
+{"type":"screen-added","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/alerts-page.html"}
+{"type":"screen-added","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/remote-read-page.html"}
+{"type":"screen-updated","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/remote-read-page.html"}
+{"type":"screen-updated","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/remote-read-page.html"}
+{"type":"screen-updated","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/remote-read-page.html"}
+{"type":"screen-updated","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/remote-read-page.html"}
+{"type":"screen-added","file":"/Users/eisenbergd/Documents/Coding/mimir-tool-ui/.superpowers/brainstorm/18509-1776414689/content/settings-page.html"}
+{"type":"server-stopped","reason":"idle timeout"}

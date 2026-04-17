@@ -32,6 +32,9 @@ final class MimirtoolRunner: MimirtoolRunning {
         return MimirtoolRunner(settings: AppSettings(mimirtoolPath: path.flatMap { $0.isEmpty ? nil : $0 }))
     }
 
+    /// Reads the binary path from @AppStorage (backed by UserDefaults).
+    static func fromAppStorage() -> MimirtoolRunner { fromUserDefaults() }
+
     func binaryCandidates() -> [String] {
         [
             "/opt/homebrew/bin/mimirtool",

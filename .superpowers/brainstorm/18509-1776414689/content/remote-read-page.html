@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MimirTool — Remote Read Page</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #161616;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    color: #e0e0e0;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px 24px; min-height: 100vh;
+  }
+  h2 { color: #fff; font-size: 15px; margin-bottom: 4px; text-align: center; }
+  .subtitle { color: #666; font-size: 12px; margin-bottom: 24px; text-align: center; }
+
+  .app-window {
+    width: 920px; height: 620px; background: #242424;
+    border-radius: 12px; overflow: hidden; border: 1px solid #2e2e2e;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  }
+  .titlebar {
+    height: 40px; background: #242424; border-bottom: 1px solid #2e2e2e;
+    display: flex; align-items: center; padding: 0 16px; gap: 8px; flex-shrink: 0;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.red { background: #ff5f57; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #28c840; }
+  .titlebar-title { flex: 1; text-align: center; font-size: 13px; font-weight: 500; color: #777; margin-left: -60px; }
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar — same as all pages */
+  .sidebar { width: 230px; background: #1e1e1e; border-right: 1px solid #2a2a2a; display: flex; flex-direction: column; padding: 16px 0 0; flex-shrink: 0; }
+  .env-chip { display: flex; align-items: center; gap: 10px; margin: 0 12px 18px; padding: 10px 12px; background: #2a2a2a; border-radius: 9px; border: 1px solid #333; cursor: pointer; }
+  .env-icon { font-size: 18px; } .env-text { flex: 1; min-width: 0; } .chevron { color: #555; font-size: 11px; }
+  .env-name { font-size: 13px; font-weight: 600; color: #e8e8e8; }
+  .env-url { font-size: 10px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .sec-label { font-size: 10px; font-weight: 700; color: #4a4a4a; text-transform: uppercase; letter-spacing: 0.08em; padding: 0 16px; margin: 8px 0 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 7px 12px; margin: 1px 8px; font-size: 13px; color: #888; border-radius: 7px; cursor: pointer; }
+  .nav-item:hover { background: #2a2a2a; color: #ccc; }
+  .nav-item.active { background: #2b3f5c; color: #7ab3f0; }
+  .nav-icon { font-size: 14px; width: 16px; text-align: center; opacity: 0.85; }
+  .nav-count { margin-left: auto; font-size: 11px; background: #2e2e2e; color: #666; padding: 1px 7px; border-radius: 10px; font-weight: 500; }
+  .nav-item.active .nav-count { background: #1d3350; color: #7ab3f0; }
+  .nav-count.firing { background: #2e1515; color: #f87171; }
+  .sidebar-spacer { flex: 1; }
+  .sidebar-footer { border-top: 1px solid #282828; padding: 8px 0; }
+  .footer-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; font-size: 12px; color: #555; }
+  .footer-btn { width: 28px; height: 28px; background: #2a2a2a; border: 1px solid #333; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #666; font-size: 13px; }
+
+  /* Content */
+  .content { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 16px; gap: 12px; overflow: hidden; background: #242424; }
+  .content-header { display: flex; align-items: center; gap: 10px; }
+  .content-title { font-size: 20px; font-weight: 600; color: #fff; flex: 1; }
+  .icon-btn { width: 30px; height: 30px; background: none; border: none; border-radius: 7px; color: #666; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  /* Query form card */
+  .query-card {
+    background: #1e1e1e;
+    border: 1px solid #2e2e2e;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+    flex-shrink: 0;
+  }
+  .form-row { display: flex; gap: 10px; align-items: center; }
+  .form-label { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.07em; width: 80px; flex-shrink: 0; }
+  .form-input {
+    flex: 1; background: #272727; border: 1px solid #333; border-radius: 7px;
+    color: #d0d0d0; font-size: 13px; padding: 6px 10px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .form-input.short { flex: none; width: 170px; }
+  .form-input::placeholder { color: #3a3a3a; }
+  .btn { display: flex; align-items: center; gap: 5px; background: #2e2e2e; border: 1px solid #3a3a3a; border-radius: 8px; color: #bbb; font-size: 12px; padding: 6px 14px; cursor: pointer; flex-shrink: 0; }
+  .btn.accent { background: #1e3a6e; border-color: #2a4d8a; color: #7ab3f0; font-weight: 500; }
+
+  /* Results card */
+  .results-card {
+    flex: 1; background: #1e1e1e; border: 1px solid #2e2e2e; border-radius: 10px;
+    overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+  }
+  .results-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; border-bottom: 1px solid #2a2a2a;
+    background: #1a1a1a;
+  }
+  .results-title { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.07em; flex: 1; }
+  .results-count { font-size: 11px; color: #444; }
+  .export-btn { font-size: 11px; color: #555; background: #252525; border: 1px solid #333; border-radius: 5px; padding: 3px 9px; cursor: pointer; }
+
+  .table-scroll { flex: 1; overflow: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; font-size: 11px; font-weight: 600; color: #555;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    padding: 8px 14px; border-bottom: 1px solid #2a2a2a;
+    background: #1e1e1e; position: sticky; top: 0; white-space: nowrap;
+  }
+  tbody td { padding: 9px 14px; font-size: 12px; color: #c0c0c0; border-bottom: 1px solid #252525; font-family: 'SF Mono', 'Fira Code', monospace; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #242424; }
+  .metric-name { color: #7ab3f0; font-weight: 500; }
+  .label-set { color: #888; font-size: 11px; }
+  .val { color: #a8d8a8; }
+  .ts  { color: #555; font-size: 11px; }
+
+  .table-footer {
+    border-top: 1px solid #2a2a2a; padding: 8px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: #444; background: #1a1a1a;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; margin-right: 5px; }
+</style>
+</head>
+<body>
+<h2>MimirTool — Remote Read Page</h2>
+<p class="subtitle">Query metrics via remote read · selector + time range + results table</p>
+
+<div class="app-window">
+  <div class="titlebar">
+    <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+    <div class="titlebar-title">MimirTool</div>
+  </div>
+  <div class="main">
+    <div class="sidebar">
+      <div class="env-chip">
+        <div class="env-icon">🟢</div>
+        <div class="env-text"><div class="env-name">Production</div><div class="env-url">mimir.mycompany.com</div></div>
+        <div class="chevron">⌄</div>
+      </div>
+      <div class="sec-label">Views</div>
+      <div class="nav-item"><span class="nav-icon">📋</span> Rules <span class="nav-count">42</span></div>
+      <div class="nav-item"><span class="nav-icon">🔔</span> Alertmanager</div>
+      <div class="nav-item"><span class="nav-icon">⚡</span> Alerts <span class="nav-count firing">3</span></div>
+      <div class="nav-item active"><span class="nav-icon">🔍</span> Remote Read</div>
+      <div class="sec-label" style="margin-top:14px">Tools</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span> Settings</div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer">
+        <div class="footer-row"><span>↺ Refresh</span><span style="font-size:10px">⌘⇧R</span></div>
+        <div class="footer-row"><span style="font-size:10px;color:#3a3a3a">mimirtool v0.16.1</span><div class="footer-btn">☀</div></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-header">
+        <div class="content-title">Remote Read</div>
+      </div>
+
+      <!-- Query form -->
+      <div class="query-card">
+        <div class="form-row">
+          <span class="form-label">Selector</span>
+          <input class="form-input" value='{job="node-exporter", __name__="node_cpu_seconds_total"}' />
+        </div>
+        <div class="form-row">
+          <span class="form-label">From</span>
+          <input class="form-input short" value="2026-04-17 08:00" />
+          <span class="form-label" style="width:30px;text-align:center">To</span>
+          <input class="form-input short" value="2026-04-17 09:00" />
+        </div>
+        <div class="form-row">
+          <span class="form-label"></span>
+          <span style="flex:1"></span>
+          <button class="btn">⬇ Export CSV</button>
+          <button class="btn accent">▶ Run Query</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="results-card">
+        <div class="results-header">
+          <span class="results-title">Results</span>
+          <span class="results-count">24 series · 1,440 samples</span>
+          <button class="export-btn">⬇ Export</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Labels</th>
+                <th>Latest Value</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="metric-name">node_cpu_seconds_total</td>
+                <td class="label-set">{cpu="0", mode="idle", instance="node-01"}</td>
+                <td class="val">48291.4</td>
+                <td class="ts">2026-04-17 08:59:55</td>
+              </tr>
+              <tr>
+                <td class="metric-name">node_cpu_seconds_total</td>
+                <td class="label-set">{cpu="0", mode="user", instance="node-01"}</td>
+                <td class="val">3821.2</td>
+                <td class="ts">2026-04-17 08:59:55</td>
+              </tr>
+              <tr>
+                <td class="metric-name">node_cpu_seconds_total</td>
+                <td class="label-set">{cpu="1", mode="idle", instance="node-01"}</td>
+                <td class="val">47983.7</td>
+                <td class="ts">2026-04-17 08:59:55</td>
+              </tr>
+              <tr>
+                <td class="metric-name">node_cpu_seconds_total</td>
+                <td class="label-set">{cpu="1", mode="system", instance="node-02"}</td>
+                <td class="val">1204.9</td>
+                <td class="ts">2026-04-17 08:59:55</td>
+              </tr>
+              <tr>
+                <td class="metric-name">node_cpu_seconds_total</td>
+                <td class="label-set">{cpu="0", mode="iowait", instance="node-02"}</td>
+                <td class="val">392.1</td>
+                <td class="ts">2026-04-17 08:59:55</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span><span class="status-dot"></span>Connected · Production</span>
+          <span>Queried in 284ms</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

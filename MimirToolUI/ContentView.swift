@@ -1,8 +1,42 @@
 import SwiftUI
 
-// TODO: implement
+enum AppPage: Hashable {
+    case rules, alertmanager, alerts, remoteRead, settings
+}
+
 struct ContentView: View {
+    @EnvironmentObject var envStore: EnvironmentStore
+    @State private var selectedPage: AppPage = .rules
+
     var body: some View {
-        Text("")
+        NavigationSplitView {
+            SidebarView(selectedPage: $selectedPage)
+        } detail: {
+            if let env = envStore.activeEnvironment {
+                detailView(for: selectedPage, env: env)
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "server.rack")
+                        .font(.system(size: 40)).foregroundColor(.secondary)
+                    Text("No environment configured")
+                        .foregroundColor(.secondary)
+                    Button("Open Settings") { selectedPage = .settings }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(hex: "#242424"))
+            }
+        }
+        .background(Color(hex: "#242424"))
+    }
+
+    @ViewBuilder
+    private func detailView(for page: AppPage, env: MimirEnvironment) -> some View {
+        switch page {
+        case .rules:        RulesView(environment: env)
+        case .alertmanager: AlertmanagerView(environment: env)
+        case .alerts:       AlertsView(environment: env)
+        case .remoteRead:   RemoteReadView(environment: env)
+        case .settings:     SettingsView()
+        }
     }
 }
