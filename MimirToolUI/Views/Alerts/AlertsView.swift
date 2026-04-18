@@ -25,12 +25,7 @@ struct AlertsView: View {
                 ))
                 .toggleStyle(.switch)
                 .font(.system(size: 12)).foregroundStyle(.secondary)
-                Button { Task { await vm.load() } } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .foregroundColor(t.iconColor)
-                        .rotationEffect(.degrees(vm.isLoading ? 360 : 0))
-                        .animation(vm.isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: vm.isLoading)
-                }.buttonStyle(.plain)
+                RefreshButton(isLoading: vm.isLoading) { Task { await vm.load() } }
             }
             .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 12)
 

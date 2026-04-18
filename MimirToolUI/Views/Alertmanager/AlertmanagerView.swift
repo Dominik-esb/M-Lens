@@ -27,9 +27,7 @@ struct AlertmanagerView: View {
             HStack(spacing: 10) {
                 Text("Alertmanager").font(.system(size: 20, weight: .semibold)).foregroundStyle(.primary)
                 Spacer()
-                Button { Task { await vm.load() } } label: {
-                    Image(systemName: "arrow.clockwise").foregroundColor(t.iconColor)
-                }.buttonStyle(.plain)
+                RefreshButton(isLoading: vm.isLoading) { Task { await vm.load() } }
             }
             .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 12)
 

@@ -27,12 +27,7 @@ struct RulesView: View {
             HStack(spacing: 10) {
                 Text("Rules").font(.system(size: 20, weight: .semibold)).foregroundStyle(.primary)
                 Spacer()
-                Button { Task { await vm.load() } } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .foregroundColor(t.iconColor)
-                        .rotationEffect(.degrees(vm.isLoading ? 360 : 0))
-                        .animation(vm.isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: vm.isLoading)
-                }.buttonStyle(.plain)
+                RefreshButton(isLoading: vm.isLoading) { Task { await vm.load() } }
 
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass").foregroundColor(t.textFaint).font(.system(size: 12))
