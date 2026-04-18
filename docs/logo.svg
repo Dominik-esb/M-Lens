@@ -1,0 +1,178 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+
+    <!-- Background: deep navy radial -->
+    <radialGradient id="bg" cx="42%" cy="38%" r="68%">
+      <stop offset="0%"   stop-color="#162438"/>
+      <stop offset="100%" stop-color="#06080e"/>
+    </radialGradient>
+
+    <!-- Glass interior -->
+    <radialGradient id="glassGrad" cx="38%" cy="34%" r="72%">
+      <stop offset="0%"   stop-color="#1c3560"/>
+      <stop offset="55%"  stop-color="#0f1e38"/>
+      <stop offset="100%" stop-color="#080e1c"/>
+    </radialGradient>
+
+    <!-- Ring: light-to-mid blue diagonal -->
+    <linearGradient id="ringGrad" x1="18%" y1="18%" x2="82%" y2="82%">
+      <stop offset="0%"   stop-color="#b8d8ff"/>
+      <stop offset="45%"  stop-color="#7ab3f0"/>
+      <stop offset="100%" stop-color="#3568b0"/>
+    </linearGradient>
+
+    <!-- Handle -->
+    <linearGradient id="handleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#7ab3f0"/>
+      <stop offset="100%" stop-color="#2a5490"/>
+    </linearGradient>
+
+    <!-- Glow for chart lines -->
+    <filter id="lineGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Soft glow for dots -->
+    <filter id="dotGlow" x="-300%" y="-300%" width="700%" height="700%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="11" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Halo behind ring -->
+    <filter id="halo" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="26" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Subtle outer glow on handle -->
+    <filter id="handleGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- macOS icon rounded-rect clip -->
+    <clipPath id="icon">
+      <rect width="1024" height="1024" rx="230" ry="230"/>
+    </clipPath>
+
+    <!-- Clip chart content to glass interior -->
+    <clipPath id="glass">
+      <circle cx="428" cy="412" r="200"/>
+    </clipPath>
+
+  </defs>
+
+  <g clip-path="url(#icon)">
+
+    <!-- ═══ BACKGROUND ═══ -->
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+
+    <!-- Faint depth rings -->
+    <circle cx="428" cy="412" r="310" fill="none" stroke="#7ab3f0" stroke-width="1" opacity="0.045"/>
+    <circle cx="428" cy="412" r="385" fill="none" stroke="#7ab3f0" stroke-width="1" opacity="0.030"/>
+    <circle cx="428" cy="412" r="460" fill="none" stroke="#7ab3f0" stroke-width="1" opacity="0.018"/>
+
+    <!-- ═══ RING HALO ═══ -->
+    <circle cx="428" cy="412" r="228" fill="none"
+            stroke="#7ab3f0" stroke-width="55" opacity="0.22"
+            filter="url(#halo)"/>
+
+    <!-- ═══ GLASS INTERIOR ═══ -->
+    <circle cx="428" cy="412" r="200" fill="url(#glassGrad)"/>
+
+    <!-- Grid inside glass -->
+    <g clip-path="url(#glass)" opacity="0.09">
+      <line x1="228" y1="332" x2="628" y2="332" stroke="#7ab3f0" stroke-width="1.5"/>
+      <line x1="228" y1="372" x2="628" y2="372" stroke="#7ab3f0" stroke-width="1.5"/>
+      <line x1="228" y1="412" x2="628" y2="412" stroke="#7ab3f0" stroke-width="1.5"/>
+      <line x1="228" y1="452" x2="628" y2="452" stroke="#7ab3f0" stroke-width="1.5"/>
+      <line x1="228" y1="492" x2="628" y2="492" stroke="#7ab3f0" stroke-width="1.5"/>
+      <line x1="278" y1="212" x2="278" y2="612" stroke="#7ab3f0" stroke-width="1.5"/>
+      <line x1="348" y1="212" x2="348" y2="612" stroke="#7ab3f0" stroke-width="1.5"/>
+      <line x1="428" y1="212" x2="428" y2="612" stroke="#7ab3f0" stroke-width="1.5"/>
+      <line x1="508" y1="212" x2="508" y2="612" stroke="#7ab3f0" stroke-width="1.5"/>
+      <line x1="578" y1="212" x2="578" y2="612" stroke="#7ab3f0" stroke-width="1.5"/>
+    </g>
+
+    <!-- Area fills under chart lines -->
+    <g clip-path="url(#glass)">
+      <path d="M 248 476
+               C 278 467, 310 458, 344 452
+               C 372 447, 390 390, 410 373
+               C 428 360, 446 386, 464 393
+               C 494 402, 536 346, 614 316
+               L 614 612 L 248 612 Z"
+            fill="#7ab3f0" opacity="0.07"/>
+      <path d="M 248 520
+               C 284 516, 318 511, 354 507
+               C 388 503, 404 492, 428 489
+               C 454 486, 478 496, 504 494
+               C 534 491, 572 480, 616 475
+               L 616 612 L 248 612 Z"
+            fill="#4ade80" opacity="0.06"/>
+    </g>
+
+    <!-- Chart lines -->
+    <g clip-path="url(#glass)">
+
+      <!-- Blue: rising trend with spike -->
+      <path d="M 248 476
+               C 278 467, 310 458, 344 452
+               C 372 447, 390 390, 410 373
+               C 428 360, 446 386, 464 393
+               C 494 402, 536 346, 614 316"
+            fill="none" stroke="#7ab3f0" stroke-width="5"
+            stroke-linecap="round" stroke-linejoin="round"
+            filter="url(#lineGlow)"/>
+
+      <!-- Green: steady with gentle undulation -->
+      <path d="M 248 520
+               C 284 516, 318 511, 354 507
+               C 388 503, 404 492, 428 489
+               C 454 486, 478 496, 504 494
+               C 534 491, 572 480, 616 475"
+            fill="none" stroke="#4ade80" stroke-width="3.5"
+            stroke-linecap="round" stroke-linejoin="round"
+            filter="url(#lineGlow)" opacity="0.88"/>
+
+      <!-- Glowing value dot at blue-line peak -->
+      <circle cx="410" cy="371" r="9"  fill="#7ab3f0" opacity="0.45" filter="url(#dotGlow)"/>
+      <circle cx="410" cy="371" r="5.5" fill="white"   opacity="0.95"/>
+
+    </g>
+
+    <!-- ═══ MAGNIFYING GLASS RING ═══ -->
+    <!-- Outer dark edge -->
+    <circle cx="428" cy="412" r="228" fill="none" stroke="#040810" stroke-width="6" opacity="0.7"/>
+    <!-- Main ring -->
+    <circle cx="428" cy="412" r="228" fill="none" stroke="url(#ringGrad)" stroke-width="52"/>
+    <!-- Inner dark edge -->
+    <circle cx="428" cy="412" r="228" fill="none" stroke="#08101e" stroke-width="3.5" opacity="0.55"
+            style="stroke-dasharray: none"/>
+
+    <!-- ═══ GLASS REFLECTION (top-left arc highlight) ═══ -->
+    <path d="M 268 272 A 228 228 0 0 1 496 194"
+          fill="none" stroke="white" stroke-width="22"
+          stroke-linecap="round" opacity="0.13"/>
+    <!-- Thinner inner highlight for glass depth -->
+    <path d="M 284 292 A 200 200 0 0 1 480 218"
+          fill="none" stroke="white" stroke-width="10"
+          stroke-linecap="round" opacity="0.07"/>
+
+    <!-- ═══ HANDLE ═══ -->
+    <!-- Shadow -->
+    <line x1="614" y1="594" x2="806" y2="796"
+          stroke="#020408" stroke-width="88" stroke-linecap="round" opacity="0.55"/>
+    <!-- Main handle -->
+    <line x1="612" y1="592" x2="804" y2="794"
+          stroke="url(#handleGrad)" stroke-width="76" stroke-linecap="round"
+          filter="url(#handleGlow)"/>
+    <!-- Handle top highlight -->
+    <line x1="596" y1="580" x2="786" y2="780"
+          stroke="white" stroke-width="16" stroke-linecap="round" opacity="0.11"/>
+    <!-- Knuckle where ring meets handle -->
+    <circle cx="614" cy="594" r="32" fill="#4a82cc" opacity="0.35"/>
+
+  </g>
+</svg>
