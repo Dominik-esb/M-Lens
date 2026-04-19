@@ -8,6 +8,11 @@ struct ContentView: View {
     @EnvironmentObject var envStore: EnvironmentStore
     @State private var selectedPage: AppPage = .rules
     @AppStorage("isDarkMode") private var isDarkMode: Bool = true
+    @AppStorage("mimirtoolPath") private var mimirtoolPath: String = ""
+
+    private var isBinaryFound: Bool {
+        MimirtoolRunner.fromAppStorage().resolvedBinaryPath() != nil
+    }
 
     var body: some View {
         NavigationSplitView {
@@ -15,6 +20,8 @@ struct ContentView: View {
         } detail: {
             if selectedPage == .settings {
                 SettingsView()
+            } else if !isBinaryFound {
+                BinaryNotFoundView { selectedPage = .settings }
             } else if let env = envStore.activeEnvironment {
                 detailView(for: selectedPage, env: env)
             } else {

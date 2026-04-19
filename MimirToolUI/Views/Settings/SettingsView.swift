@@ -67,12 +67,24 @@ struct SettingsView: View {
                                 .background(t.inputBg)
                                 .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
                                 .cornerRadius(7)
-                            if detectedPath != nil && mimirtoolPath.isEmpty {
-                                Text("✓ detected").font(.system(size: 11))
+                            if let path = detectedPath {
+                                let isCustom = !mimirtoolPath.isEmpty
+                                Text(isCustom ? "✓ set" : "✓ detected")
+                                    .font(.system(size: 11))
                                     .padding(.horizontal, 7).padding(.vertical, 2)
                                     .background(t.tagRecordBg).foregroundColor(Color(hex: "#4ade80"))
                                     .cornerRadius(4)
+                                    .help(path)
+                            } else {
+                                Text("not found")
+                                    .font(.system(size: 11))
+                                    .padding(.horizontal, 7).padding(.vertical, 2)
+                                    .background(Color(hex: "#f87171").opacity(0.15))
+                                    .foregroundColor(Color(hex: "#f87171"))
+                                    .cornerRadius(4)
                             }
+                            Button("Auto-detect") { autoDetectBinary() }
+                                .buttonStyle(SecondaryButtonStyle())
                             Button("Browse…") { pickFile { mimirtoolPath = $0 } }
                                 .buttonStyle(SecondaryButtonStyle())
                         }
@@ -204,5 +216,17 @@ struct SettingsView: View {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         if panel.runModal() == .OK, let url = panel.url { completion(url.path) }
+    }
+
+    private func autoDetectBinary() {
+        let candidates = [
+            "/opt/homebrew/bin/mimirtool",
+            "/usr/local/bin/mimirtool",
+            "/usr/bin/mimirtool",
+            (ProcessInfo.processInfo.environment["HOME"] ?? "") + "/.local/bin/mimirtool"
+        ]
+        if let found = candidates.first(where: { FileManager.default.fileExists(atPath: $0) }) {
+            mimirtoolPath = found
+        }
     }
 }
