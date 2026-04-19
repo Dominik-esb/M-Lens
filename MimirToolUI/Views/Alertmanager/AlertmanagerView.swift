@@ -142,6 +142,14 @@ struct AlertmanagerView: View {
             .padding(.horizontal, 20).padding(.bottom, 16)
         }
         .background(t.bg)
+        .overlay(alignment: .bottom) {
+            if let msg = vm.activityMessage {
+                ActivityToastView(message: msg)
+                    .padding(.bottom, 20)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: vm.activityMessage)
         .task { await vm.load() }
         .task { await runLint() }
         .onChange(of: vm.configYAML) { _ in scheduleLint() }

@@ -7,7 +7,7 @@ struct RulesView: View {
     @State private var showEditor = false
     @State private var editingYAML = ""
     @State private var showDeleteConfirm = false
-    @State private var deleteTarget: (namespace: String, group: String?)? = nil
+    @State private var deleteTarget: (namespace: String, group: String, ruleName: String)? = nil
     @State private var showFilePicker = false
     @State private var showGuidedCreator = false
     @State private var selectedRule: Rule?
@@ -96,17 +96,7 @@ struct RulesView: View {
                         ForEach(vm.filtered) { ns in
                             ForEach(ns.groups) { group in
                                 ForEach(group.rules) { rule in
-                                    RuleRowView(
-                                        rule: rule,
-                                        onTap: { selectedRule = rule },
-                                        onEdit: {
-                                            Task {
-                                                editingYAML = (try? await vm.fetchRuleGroupYAML(namespace: rule.namespace, group: rule.group)) ?? ""
-                                                showEditor = true
-                                            }
-                                        },
-                                        onDelete: { deleteTarget = (ns.name, group.name); showDeleteConfirm = true }
-                                    )
+                                    ruleRow(rule: rule, ns: ns, group: group)
                                 }
                             }
                         }
@@ -172,6 +162,19 @@ struct RulesView: View {
             .padding(.horizontal, 20).padding(.bottom, 16)
         }
         .background(t.bg)
+        .overlay(
+            Group {
+                if let msg = vm.activityMessage {
+                    VStack {
+                        Spacer()
+                        ActivityToastView(message: msg)
+                            .padding(.bottom, 24)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+            }
+            .animation(.spring(response: 0.3), value: vm.activityMessage)
+        )
         .task { await vm.load() }
         .sheet(item: $selectedRule) { rule in
             RuleDetailSheet(rule: rule, runner: MimirtoolRunner.fromAppStorage(), environment: environment) {
@@ -191,20 +194,32 @@ struct RulesView: View {
                 Task { await vm.push(yamlContent: yaml) }
             }
         }
-        .alert("Delete Rule?", isPresented: $showDeleteConfirm) {
+        .alert("Delete Rule?", isPresented: $showDeleteConfirm, presenting: deleteTarget) { target in
             Button("Delete", role: .destructive) {
-                if let t = deleteTarget {
-                    Task {
-                        if let group = t.group {
-                            await vm.deleteGroup(namespace: t.namespace, group: group)
-                        } else {
-                            await vm.deleteNamespace(t.namespace)
-                        }
-                    }
-                }
+                Task { await vm.deleteRule(namespace: target.namespace, group: target.group, ruleName: target.ruleName) }
             }
             Button("Cancel", role: .cancel) {}
+        } message: { target in
+            Text("\"\(target.ruleName)\" will be removed from group \"\(target.group)\". Other rules in the group are not affected.")
         }
+    }
+
+    @ViewBuilder
+    private func ruleRow(rule: Rule, ns: RuleNamespace, group: RuleGroup) -> some View {
+        RuleRowView(
+            rule: rule,
+            onTap: { selectedRule = rule },
+            onEdit: {
+                Task {
+                    editingYAML = (try? await vm.fetchRuleGroupYAML(namespace: rule.namespace, group: rule.group)) ?? ""
+                    showEditor = true
+                }
+            },
+            onDelete: {
+                deleteTarget = (namespace: ns.name, group: group.name, ruleName: rule.ruleName)
+                showDeleteConfirm = true
+            }
+        )
     }
 }
 
