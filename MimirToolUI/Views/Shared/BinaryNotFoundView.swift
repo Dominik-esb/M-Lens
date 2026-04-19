@@ -96,7 +96,7 @@ struct BinaryNotFoundView: View {
             "/usr/bin/mimirtool",
             (ProcessInfo.processInfo.environment["HOME"] ?? "") + "/.local/bin/mimirtool"
         ]
-        if let found = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) {
+        if let found = candidates.first(where: { FileManager.default.fileExists(atPath: $0) }) {
             mimirtoolPath = found
             didAutoDetect = true
             retryToken = UUID()

@@ -52,7 +52,7 @@ final class MimirtoolRunner: MimirtoolRunning {
         // binary is perfectly valid. Let Process.run() report the real error if it's wrong.
         if let path = settings.mimirtoolPath, !path.isEmpty { return path }
         // For auto-detection we still probe — these are well-known system paths
-        return binaryCandidates().first { FileManager.default.isExecutableFile(atPath: $0) }
+        return binaryCandidates().first { FileManager.default.fileExists(atPath: $0) }
     }
 
     func baseArgs(for env: MimirEnvironment) -> [String] {
