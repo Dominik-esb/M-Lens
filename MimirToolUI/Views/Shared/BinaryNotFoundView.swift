@@ -2,6 +2,9 @@ import SwiftUI
 
 struct BinaryNotFoundView: View {
     let onOpenSettings: () -> Void
+    @AppStorage("mimirtoolPath") private var mimirtoolPath: String = ""
+    @State private var retryToken: UUID = UUID()
+    @State private var didAutoDetect = false
     @Environment(\.colorScheme) var colorScheme
     private var t: Theme { Theme(colorScheme) }
 
@@ -31,11 +34,36 @@ struct BinaryNotFoundView: View {
                 }
 
                 VStack(spacing: 8) {
-                    Button(action: onOpenSettings) {
-                        Label("Open Settings", systemImage: "gear")
-                            .font(.system(size: 13))
+                    HStack(spacing: 8) {
+                        Button(action: onOpenSettings) {
+                            Label("Open Settings", systemImage: "gear")
+                                .font(.system(size: 13))
+                        }
+                        .buttonStyle(AccentButtonStyle())
+
+                        Button {
+                            autoDetect()
+                        } label: {
+                            Label("Auto-detect", systemImage: "magnifyingglass")
+                                .font(.system(size: 13))
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+
+                        Button {
+                            retryToken = UUID()
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 13))
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .help("Retry detection")
                     }
-                    .buttonStyle(AccentButtonStyle())
+
+                    if didAutoDetect {
+                        Label("Path set — click Retry to recheck", systemImage: "checkmark.circle")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(hex: "#4ade80"))
+                    }
 
                     Text("brew install grafana/grafana/mimirtool")
                         .font(.system(size: 11, design: .monospaced))
@@ -58,5 +86,20 @@ struct BinaryNotFoundView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(t.bg)
+        .id(retryToken)
+    }
+
+    private func autoDetect() {
+        let candidates = [
+            "/opt/homebrew/bin/mimirtool",
+            "/usr/local/bin/mimirtool",
+            "/usr/bin/mimirtool",
+            (ProcessInfo.processInfo.environment["HOME"] ?? "") + "/.local/bin/mimirtool"
+        ]
+        if let found = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) {
+            mimirtoolPath = found
+            didAutoDetect = true
+            retryToken = UUID()
+        }
     }
 }
