@@ -7,12 +7,12 @@ final class RulesViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var searchText = ""
+    @Published var activityMessage: ActivityMessage?
 
     private let runner: MimirtoolRunning
     private let environment: MimirEnvironment
+    private var toastTask: Task<Void, Never>?
 
-    /// Injectable for testing: returns the URL of the temp directory where
-    /// `mimirtool rules print --output-dir` writes per-namespace YAML files.
     var tmpDirProvider: () -> URL = {
         FileManager.default.temporaryDirectory
             .appendingPathComponent("MimirToolUI-rules-\(Int(Date().timeIntervalSince1970))")
@@ -57,13 +57,31 @@ final class RulesViewModel: ObservableObject {
         try await runner.run(["rules", "get", namespace, group], environment: environment)
     }
 
-    func deleteNamespace(_ namespace: String) async {
+    // MARK: - Delete (single rule)
+
+    /// Deletes only the named rule from its group. If it's the last rule in the
+    /// group the whole group is removed; otherwise the group is re-uploaded minus
+    /// that rule using Ruby/Psych (same runtime used for linting).
+    func deleteRule(namespace: String, group: String, ruleName: String) async {
         errorMessage = nil
         do {
-            _ = try await runner.run(["rules", "delete", namespace], environment: environment)
+            let groupYAML = try await runner.run(["rules", "get", namespace, group], environment: environment)
+            if let modifiedYAML = try removeRuleFromYAML(groupYAML, ruleName: ruleName) {
+                // Re-upload the group with the rule removed
+                let dir = FileManager.default.temporaryDirectory.appendingPathComponent("MimirToolUI-rules")
+                let file = dir.appendingPathComponent("rules-delete-patch.yaml")
+                try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                try modifiedYAML.write(to: file, atomically: true, encoding: .utf8)
+                _ = try await runner.run(["rules", "load", file.path], environment: environment)
+            } else {
+                // No rules left in the group — delete it entirely
+                _ = try await runner.run(["rules", "delete", namespace, group], environment: environment)
+            }
             await load()
+            showToast("Deleted rule \"\(ruleName)\"", isError: false)
         } catch {
             errorMessage = error.localizedDescription
+            showToast("Delete failed: \(error.localizedDescription)", isError: true)
         }
     }
 
@@ -72,8 +90,22 @@ final class RulesViewModel: ObservableObject {
         do {
             _ = try await runner.run(["rules", "delete", namespace, group], environment: environment)
             await load()
+            showToast("Deleted group \"\(group)\"", isError: false)
         } catch {
             errorMessage = error.localizedDescription
+            showToast("Delete failed: \(error.localizedDescription)", isError: true)
+        }
+    }
+
+    func deleteNamespace(_ namespace: String) async {
+        errorMessage = nil
+        do {
+            _ = try await runner.run(["rules", "delete", namespace], environment: environment)
+            await load()
+            showToast("Deleted namespace \"\(namespace)\"", isError: false)
+        } catch {
+            errorMessage = error.localizedDescription
+            showToast("Delete failed: \(error.localizedDescription)", isError: true)
         }
     }
 
@@ -86,9 +118,65 @@ final class RulesViewModel: ObservableObject {
             try yamlContent.write(to: file, atomically: true, encoding: .utf8)
             _ = try await runner.run(["rules", "load", file.path], environment: environment)
             await load()
+            showToast("Rules uploaded successfully", isError: false)
         } catch {
             errorMessage = error.localizedDescription
+            showToast("Upload failed: \(error.localizedDescription)", isError: true)
         }
+    }
+
+    // MARK: - Toast
+
+    private func showToast(_ text: String, isError: Bool) {
+        toastTask?.cancel()
+        activityMessage = ActivityMessage(text: text, isError: isError)
+        toastTask = Task {
+            try? await Task.sleep(for: .seconds(4))
+            guard !Task.isCancelled else { return }
+            activityMessage = nil
+        }
+    }
+
+    // MARK: - YAML rule removal via Ruby/Psych
+
+    /// Returns modified YAML with the named rule removed, or nil if no rules remain.
+    private func removeRuleFromYAML(_ yaml: String, ruleName: String) throws -> String? {
+        let escapedName = ruleName.replacingOccurrences(of: "'", with: "\\'")
+        let script = """
+        require 'yaml'
+        config = YAML.safe_load(STDIN.read, permitted_classes: [])
+        config['groups']&.each do |g|
+          g['rules']&.reject! { |r| (r['alert'] || r['record']).to_s == '\(escapedName)' }
+        end
+        config['groups']&.reject! { |g| g['rules'].nil? || g['rules'].empty? }
+        if config['groups'].nil? || config['groups'].empty?
+          puts '__EMPTY__'
+        else
+          print YAML.dump(config)
+        end
+        """
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/ruby")
+        process.arguments = ["-e", script]
+
+        let stdin = Pipe()
+        let stdout = Pipe()
+        let stderr = Pipe()
+        process.standardInput = stdin
+        process.standardOutput = stdout
+        process.standardError = stderr
+
+        try process.run()
+        stdin.fileHandleForWriting.write(yaml.data(using: .utf8) ?? Data())
+        stdin.fileHandleForWriting.closeFile()
+
+        let outData = stdout.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+
+        let output = String(data: outData, encoding: .utf8) ?? ""
+        if output.contains("__EMPTY__") { return nil }
+        return output.isEmpty ? nil : output
     }
 
     // MARK: - Private parsing
@@ -105,8 +193,6 @@ final class RulesViewModel: ObservableObject {
         }.sorted { $0.name < $1.name }
     }
 
-    /// Parse group/rule metadata from mimirtool rules list YAML output.
-    /// Handles the standard Prometheus rules YAML format written by mimirtool.
     private func parseGroupsFromYAML(_ yaml: String, namespace: String) -> [RuleGroup] {
         var groups: [RuleGroup] = []
         var currentName = ""
