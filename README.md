@@ -1,4 +1,4 @@
-# MimirLens
+# MLens
 
 A native macOS application that provides a graphical interface for [mimirtool](https://grafana.com/docs/mimir/latest/manage/tools/mimirtool/), the official CLI for Grafana Mimir. Instead of constructing `mimirtool` commands by hand, MimirLens lets you manage your Mimir cluster through a clean, dark-themed UI.
 
