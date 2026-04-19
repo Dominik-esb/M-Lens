@@ -10,6 +10,16 @@ final class RemoteReadViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var queryDuration: String?
 
+    // MARK: - Metric Browser
+    @Published var availableMetrics: [String] = []
+    @Published var isFetchingMetrics = false
+    @Published var metricSearchText = ""
+
+    var filteredMetrics: [String] {
+        if metricSearchText.isEmpty { return availableMetrics }
+        return availableMetrics.filter { $0.localizedCaseInsensitiveContains(metricSearchText) }
+    }
+
     private let runner: MimirtoolRunning
     private let environment: MimirEnvironment
 
@@ -17,6 +27,56 @@ final class RemoteReadViewModel: ObservableObject {
         self.runner = runner
         self.environment = environment
     }
+
+    // MARK: - Time Range Label
+
+    var timeRangeLabel: String {
+        let diff = toDate.timeIntervalSince(fromDate)
+        switch diff {
+        case ..<(60 * 16): return "Last 15m"
+        case ..<(3601): return "Last 1h"
+        case ..<(6 * 3601): return "Last 6h"
+        case ..<(24 * 3601): return "Last 24h"
+        case ..<(7 * 24 * 3601 + 1): return "Last 7d"
+        default:
+            let fmt = DateFormatter()
+            fmt.dateFormat = "MM/dd HH:mm"
+            return "\(fmt.string(from: fromDate)) → \(fmt.string(from: toDate))"
+        }
+    }
+
+    // MARK: - Metric Loading
+
+    func loadMetrics() async {
+        isFetchingMetrics = true
+        availableMetrics = await fetchMetricNames()
+        isFetchingMetrics = false
+    }
+
+    private func fetchMetricNames() async -> [String] {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        let to = Date()
+        let from = Calendar.current.date(byAdding: .minute, value: -5, to: to) ?? to
+        let output = (try? await runner.run([
+            "remote-read", "dump",
+            "--selector", "{}",
+            "--from", formatter.string(from: from),
+            "--to", formatter.string(from: to)
+        ], environment: environment)) ?? ""
+        var names = Set<String>()
+        let pattern = try? NSRegularExpression(pattern: #"__name__="([^"]+)""#)
+        for line in output.components(separatedBy: "\n") {
+            let ns = line as NSString
+            let range = NSRange(location: 0, length: ns.length)
+            if let match = pattern?.firstMatch(in: line, range: range) {
+                names.insert(ns.substring(with: match.range(at: 1)))
+            }
+        }
+        return names.sorted()
+    }
+
+    // MARK: - Query
 
     func runQuery() async {
         guard !selector.isEmpty else {
@@ -53,9 +113,6 @@ final class RemoteReadViewModel: ObservableObject {
         try csv.write(to: url, atomically: true, encoding: .utf8)
     }
 
-    /// Parse `mimirtool remote-read dump` stdout.
-    /// Each line: `{__name__="foo",label="val"} value timestamp_ms`
-    /// We deduplicate per series, keeping the last (most recent) sample.
     private func parseDumpOutput(_ output: String) -> [RemoteReadResult] {
         guard let regex = try? NSRegularExpression(pattern: #"(\w+)="([^"]*)""#) else { return [] }
         var latest: [String: RemoteReadResult] = [:]
@@ -70,7 +127,6 @@ final class RemoteReadViewModel: ObservableObject {
             guard parts.count >= 2 else { continue }
 
             let value = parts[0]
-            // Skip stale NaN values
             if value == "NaN" || value == "nan" { continue }
 
             let tsStr = parts[1]
