@@ -12,6 +12,7 @@ struct AlertmanagerView: View {
     @State private var diagnostics: [YAMLDiagnostic] = []
     @State private var isChecking = false
     @State private var lintTask: Task<Void, Never>?
+    @State private var isDragTargeted = false
 
     init(environment: MimirEnvironment) {
         self.environment = environment
@@ -91,8 +92,47 @@ struct AlertmanagerView: View {
                 }
                 .background(t.surface)
                 .cornerRadius(10)
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(t.border, lineWidth: 1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(isDragTargeted ? Color(hex: "#7ab3f0") : t.border,
+                                lineWidth: isDragTargeted ? 2 : 1)
+                )
+                .overlay(
+                    Group {
+                        if isDragTargeted {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color(hex: "#7ab3f0").opacity(0.10))
+                                VStack(spacing: 8) {
+                                    Image(systemName: "arrow.down.doc")
+                                        .font(.system(size: 28))
+                                        .foregroundColor(Color(hex: "#7ab3f0"))
+                                    Text("Drop YAML to upload")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(Color(hex: "#7ab3f0"))
+                                }
+                            }
+                        }
+                    }
+                )
                 .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+                .onDrop(of: [UTType.fileURL], isTargeted: $isDragTargeted) { providers in
+                    for provider in providers {
+                        provider.loadDataRepresentation(forTypeIdentifier: UTType.fileURL.identifier) { data, _ in
+                            guard let data,
+                                  let urlString = String(data: data, encoding: .utf8),
+                                  let url = URL(string: urlString) else { return }
+                            let ext = url.pathExtension.lowercased()
+                            guard ext == "yaml" || ext == "yml" else { return }
+                            guard let yaml = try? String(contentsOf: url) else { return }
+                            Task { @MainActor in
+                                vm.configYAML = yaml
+                                vm.hasUnsavedChanges = true
+                            }
+                        }
+                    }
+                    return true
+                }
 
                 ConfigSummaryView(yaml: vm.configYAML)
                     .cornerRadius(10)
