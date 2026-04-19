@@ -47,23 +47,31 @@ final class RemoteReadViewModel: ObservableObject {
 
     // MARK: - Metric Loading
 
+    @Published var metricsError: String?
+
     func loadMetrics() async {
         isFetchingMetrics = true
-        availableMetrics = await fetchMetricNames()
+        metricsError = nil
+        do {
+            availableMetrics = try await fetchMetricNames()
+        } catch {
+            metricsError = error.localizedDescription
+        }
         isFetchingMetrics = false
     }
 
-    private func fetchMetricNames() async -> [String] {
+    private func fetchMetricNames() async throws -> [String] {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
         let to = Date()
-        let from = Calendar.current.date(byAdding: .minute, value: -5, to: to) ?? to
-        let output = (try? await runner.run([
+        // Use a 1-hour window — 5 minutes is often too short to find any series
+        let from = Calendar.current.date(byAdding: .hour, value: -1, to: to) ?? to
+        let output = try await runner.run([
             "remote-read", "dump",
             "--selector", "{}",
             "--from", formatter.string(from: from),
             "--to", formatter.string(from: to)
-        ], environment: environment)) ?? ""
+        ], environment: environment)
         var names = Set<String>()
         let pattern = try? NSRegularExpression(pattern: #"__name__="([^"]+)""#)
         for line in output.components(separatedBy: "\n") {
