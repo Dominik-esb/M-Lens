@@ -45,12 +45,13 @@ final class MimirtoolRunner: MimirtoolRunning {
     }
 
     func resolvedBinaryPath(override: String? = nil) -> String? {
-        if let override, !override.isEmpty, FileManager.default.isExecutableFile(atPath: override) {
-            return override
-        }
-        if let path = settings.mimirtoolPath, !path.isEmpty, FileManager.default.isExecutableFile(atPath: path) {
-            return path
-        }
+        // Trust an explicitly provided override as-is (caller knows what they're doing)
+        if let override, !override.isEmpty { return override }
+        // Trust the user-configured path without re-checking isExecutableFile — the sandbox
+        // can return false for paths the user didn't open via a file picker, even when the
+        // binary is perfectly valid. Let Process.run() report the real error if it's wrong.
+        if let path = settings.mimirtoolPath, !path.isEmpty { return path }
+        // For auto-detection we still probe — these are well-known system paths
         return binaryCandidates().first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
