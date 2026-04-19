@@ -7,6 +7,9 @@ struct RemoteReadView: View {
     @Environment(\.colorScheme) var colorScheme
     private var t: Theme { Theme(colorScheme) }
 
+    @State private var showMetricBrowser = false
+    @State private var showTimeSelector = false
+
     init(environment: MimirEnvironment) {
         self.environment = environment
         _vm = StateObject(wrappedValue: RemoteReadViewModel(
@@ -30,6 +33,7 @@ struct RemoteReadView: View {
 
             // Query form card
             VStack(spacing: 10) {
+                // SELECTOR row
                 HStack(spacing: 12) {
                     Text("SELECTOR")
                         .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
@@ -42,19 +46,56 @@ struct RemoteReadView: View {
                         .background(t.inputBg)
                         .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
                         .cornerRadius(7)
+                    Button {
+                        showMetricBrowser = true
+                        Task { await vm.loadMetrics() }
+                    } label: {
+                        Image(systemName: "list.bullet.magnifyingglass")
+                            .font(.system(size: 14))
+                            .foregroundColor(t.iconColor)
+                            .frame(width: 30, height: 30)
+                            .background(t.inputBg)
+                            .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
+                            .cornerRadius(7)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Browse available metrics")
+                    .popover(isPresented: $showMetricBrowser) {
+                        MetricBrowserPopover(vm: vm, isPresented: $showMetricBrowser)
+                    }
                 }
+
+                // TIME RANGE row
                 HStack(spacing: 12) {
-                    Text("FROM")
+                    Text("TIME")
                         .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                         .tracking(0.7).frame(width: 80, alignment: .leading)
-                    DatePicker("", selection: $vm.fromDate, displayedComponents: [.date, .hourAndMinute])
-                        .labelsHidden()
-                    Text("TO")
-                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
-                        .tracking(0.7).frame(width: 30, alignment: .center)
-                    DatePicker("", selection: $vm.toDate, displayedComponents: [.date, .hourAndMinute])
-                        .labelsHidden()
+                    Button {
+                        showTimeSelector.toggle()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "clock")
+                                .font(.system(size: 12))
+                                .foregroundColor(t.iconColor)
+                            Text(vm.timeRangeLabel)
+                                .font(.system(size: 13))
+                                .foregroundColor(t.textBody)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 10))
+                                .foregroundColor(t.textMuted)
+                        }
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(t.inputBg)
+                        .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
+                        .cornerRadius(7)
+                    }
+                    .buttonStyle(.plain)
+                    .popover(isPresented: $showTimeSelector) {
+                        TimeRangeSelectorPopover(vm: vm, isPresented: $showTimeSelector)
+                    }
                 }
+
                 HStack {
                     Spacer()
                     Button { exportCSV() } label: {
@@ -151,5 +192,138 @@ struct RemoteReadView: View {
         if panel.runModal() == .OK, let url = panel.url {
             try? vm.exportCSV(to: url)
         }
+    }
+}
+
+// MARK: - Metric Browser Popover
+
+private struct MetricBrowserPopover: View {
+    @ObservedObject var vm: RemoteReadViewModel
+    @Binding var isPresented: Bool
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Search bar
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12))
+                    .foregroundColor(t.textMuted)
+                TextField("Search metrics…", text: $vm.metricSearchText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13))
+            }
+            .padding(.horizontal, 10).padding(.vertical, 8)
+            .background(t.inputBg)
+            .overlay(Rectangle().frame(height: 1).foregroundColor(t.borderSub), alignment: .bottom)
+
+            if vm.isFetchingMetrics {
+                VStack {
+                    Spacer()
+                    ProgressView("Loading metrics…").font(.system(size: 12)).foregroundStyle(.secondary)
+                    Spacer()
+                }
+            } else if vm.filteredMetrics.isEmpty {
+                VStack {
+                    Spacer()
+                    Text(vm.availableMetrics.isEmpty ? "No metrics found" : "No matches")
+                        .font(.system(size: 12)).foregroundStyle(.secondary)
+                    Spacer()
+                }
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(vm.filteredMetrics, id: \.self) { name in
+                            Button {
+                                vm.selector = "{__name__=\"\(name)\"}"
+                                vm.metricSearchText = ""
+                                isPresented = false
+                            } label: {
+                                HStack {
+                                    Text(name)
+                                        .font(.system(size: 12, design: .monospaced))
+                                        .foregroundColor(t.textBody)
+                                        .lineLimit(1)
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 12).padding(.vertical, 7)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .overlay(Rectangle().frame(height: 1).foregroundColor(t.divider), alignment: .bottom)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(width: 280, height: 320)
+        .background(t.surface)
+    }
+}
+
+// MARK: - Time Range Selector Popover
+
+private struct TimeRangeSelectorPopover: View {
+    @ObservedObject var vm: RemoteReadViewModel
+    @Binding var isPresented: Bool
+    @Environment(\.colorScheme) var colorScheme
+    private var t: Theme { Theme(colorScheme) }
+
+    private let presets: [(label: String, hours: Double)] = [
+        ("Last 15m", 0.25),
+        ("Last 1h",  1),
+        ("Last 6h",  6),
+        ("Last 24h", 24),
+        ("Last 7d",  168)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("QUICK RANGES")
+                .font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary).tracking(0.7)
+
+            // Preset grid
+            let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(presets, id: \.label) { preset in
+                    Button {
+                        let now = Date()
+                        vm.toDate = now
+                        vm.fromDate = Date(timeIntervalSinceNow: -preset.hours * 3600)
+                        isPresented = false
+                    } label: {
+                        Text(preset.label)
+                            .font(.system(size: 11))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 5)
+                            .background(t.surfaceAlt)
+                            .foregroundColor(t.textSub)
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(t.border, lineWidth: 1))
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Divider()
+
+            Text("CUSTOM RANGE")
+                .font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary).tracking(0.7)
+
+            HStack(spacing: 8) {
+                Text("From").font(.system(size: 11)).foregroundStyle(.secondary).frame(width: 32, alignment: .trailing)
+                DatePicker("", selection: $vm.fromDate, displayedComponents: [.date, .hourAndMinute])
+                    .labelsHidden()
+            }
+            HStack(spacing: 8) {
+                Text("To").font(.system(size: 11)).foregroundStyle(.secondary).frame(width: 32, alignment: .trailing)
+                DatePicker("", selection: $vm.toDate, displayedComponents: [.date, .hourAndMinute])
+                    .labelsHidden()
+            }
+        }
+        .padding(16)
+        .frame(width: 300)
+        .background(t.surface)
     }
 }
