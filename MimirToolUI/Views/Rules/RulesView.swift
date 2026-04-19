@@ -9,7 +9,9 @@ struct RulesView: View {
     @State private var showDeleteConfirm = false
     @State private var deleteTarget: (namespace: String, group: String?)? = nil
     @State private var showFilePicker = false
+    @State private var showGuidedCreator = false
     @State private var selectedRule: Rule?
+    @State private var isDragTargeted = false
     @Environment(\.colorScheme) var colorScheme
     private var t: Theme { Theme(colorScheme) }
 
@@ -23,7 +25,6 @@ struct RulesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack(spacing: 10) {
                 Text("Rules").font(.system(size: 20, weight: .semibold)).foregroundStyle(.primary)
                 Spacer()
@@ -42,7 +43,6 @@ struct RulesView: View {
             }
             .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 12)
 
-            // Action bar
             HStack(spacing: 8) {
                 Button { showFilePicker = true } label: {
                     Label("Upload YAML", systemImage: "arrow.up").font(.system(size: 12))
@@ -62,6 +62,12 @@ struct RulesView: View {
                     Label("New Rule", systemImage: "plus").font(.system(size: 12))
                 }
                 .buttonStyle(AccentButtonStyle())
+
+                Button { showGuidedCreator = true } label: {
+                    Label("Create…", systemImage: "wand.and.stars").font(.system(size: 12))
+                }
+                .buttonStyle(SecondaryButtonStyle())
+
                 Spacer()
             }
             .padding(.horizontal, 20).padding(.bottom, 12)
@@ -72,7 +78,6 @@ struct RulesView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
 
-            // Table
             VStack(spacing: 0) {
                 HStack {
                     Text("NAMESPACE").tableHeader().frame(width: 120, alignment: .leading)
@@ -128,8 +133,42 @@ struct RulesView: View {
             }
             .background(t.surface)
             .cornerRadius(10)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(t.border, lineWidth: 1))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isDragTargeted ? Color(hex: "#7ab3f0") : t.border,
+                            lineWidth: isDragTargeted ? 2 : 1)
+            )
+            .overlay(
+                Group {
+                    if isDragTargeted {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10).fill(Color(hex: "#7ab3f0").opacity(0.10))
+                            VStack(spacing: 8) {
+                                Image(systemName: "arrow.down.doc").font(.system(size: 28))
+                                    .foregroundColor(Color(hex: "#7ab3f0"))
+                                Text("Drop YAML to upload")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(Color(hex: "#7ab3f0"))
+                            }
+                        }
+                    }
+                }
+            )
             .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+            .onDrop(of: [UTType.fileURL], isTargeted: $isDragTargeted) { providers in
+                for provider in providers {
+                    provider.loadDataRepresentation(forTypeIdentifier: UTType.fileURL.identifier) { data, _ in
+                        guard let data,
+                              let urlString = String(data: data, encoding: .utf8),
+                              let url = URL(string: urlString) else { return }
+                        let ext = url.pathExtension.lowercased()
+                        guard ext == "yaml" || ext == "yml" else { return }
+                        guard let yaml = try? String(contentsOf: url) else { return }
+                        Task { @MainActor in await vm.push(yamlContent: yaml) }
+                    }
+                }
+                return true
+            }
             .padding(.horizontal, 20).padding(.bottom, 16)
         }
         .background(t.bg)
@@ -144,6 +183,11 @@ struct RulesView: View {
         }
         .sheet(isPresented: $showEditor) {
             RuleEditorSheet(yaml: $editingYAML) { yaml in
+                Task { await vm.push(yamlContent: yaml) }
+            }
+        }
+        .sheet(isPresented: $showGuidedCreator) {
+            GuidedRuleSheet { yaml in
                 Task { await vm.push(yamlContent: yaml) }
             }
         }
@@ -235,7 +279,6 @@ private struct RuleDetailSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(rule.ruleName)
@@ -255,7 +298,6 @@ private struct RuleDetailSheet: View {
             .background(t.surfaceAlt)
             .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
 
-            // Metadata row
             HStack(spacing: 24) {
                 metaItem("GROUP", value: rule.group)
                 metaItem("NAMESPACE", value: rule.namespace)
@@ -266,7 +308,6 @@ private struct RuleDetailSheet: View {
             .background(t.surface)
             .overlay(Rectangle().frame(height: 1).foregroundColor(t.sectionLine), alignment: .bottom)
 
-            // YAML section
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text("YAML").font(.system(size: 10, weight: .semibold))
