@@ -50,13 +50,17 @@ struct RemoteReadView: View {
                         showMetricBrowser = true
                         Task { await vm.loadMetrics() }
                     } label: {
-                        Image(systemName: "list.bullet.magnifyingglass")
-                            .font(.system(size: 14))
-                            .foregroundColor(t.iconColor)
-                            .frame(width: 30, height: 30)
-                            .background(t.inputBg)
-                            .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
-                            .cornerRadius(7)
+                        HStack(spacing: 4) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 12))
+                            Image(systemName: "list.bullet")
+                                .font(.system(size: 10))
+                        }
+                        .foregroundColor(t.iconColor)
+                        .frame(width: 36, height: 30)
+                        .background(t.inputBg)
+                        .overlay(RoundedRectangle(cornerRadius: 7).stroke(t.borderSub, lineWidth: 1))
+                        .cornerRadius(7)
                     }
                     .buttonStyle(.plain)
                     .help("Browse available metrics")
@@ -221,14 +225,29 @@ private struct MetricBrowserPopover: View {
             if vm.isFetchingMetrics {
                 VStack {
                     Spacer()
-                    ProgressView("Loading metrics…").font(.system(size: 12)).foregroundStyle(.secondary)
+                    ProgressView("Fetching metrics…").font(.system(size: 12)).foregroundStyle(.secondary)
+                    Spacer()
+                }
+            } else if let err = vm.metricsError {
+                VStack(spacing: 8) {
+                    Spacer()
+                    Image(systemName: "exclamationmark.triangle").foregroundColor(Color(hex: "#f87171"))
+                    Text(err)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 12)
+                    Button("Retry") { Task { await vm.loadMetrics() } }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .font(.system(size: 11))
                     Spacer()
                 }
             } else if vm.filteredMetrics.isEmpty {
                 VStack {
                     Spacer()
-                    Text(vm.availableMetrics.isEmpty ? "No metrics found" : "No matches")
+                    Text(vm.availableMetrics.isEmpty ? "No metrics found in the last hour" : "No matches")
                         .font(.system(size: 12)).foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center).padding(.horizontal, 12)
                     Spacer()
                 }
             } else {
