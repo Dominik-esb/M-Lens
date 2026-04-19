@@ -9,6 +9,7 @@ struct RulesView: View {
     @State private var showDeleteConfirm = false
     @State private var deleteTarget: (namespace: String, group: String?)? = nil
     @State private var showFilePicker = false
+    @State private var showGuidedCreator = false
     @State private var selectedRule: Rule?
     @State private var isDragTargeted = false
     @Environment(\.colorScheme) var colorScheme
@@ -61,6 +62,12 @@ struct RulesView: View {
                     Label("New Rule", systemImage: "plus").font(.system(size: 12))
                 }
                 .buttonStyle(AccentButtonStyle())
+
+                Button { showGuidedCreator = true } label: {
+                    Label("Create…", systemImage: "wand.and.stars").font(.system(size: 12))
+                }
+                .buttonStyle(SecondaryButtonStyle())
+
                 Spacer()
             }
             .padding(.horizontal, 20).padding(.bottom, 12)
@@ -176,6 +183,11 @@ struct RulesView: View {
         }
         .sheet(isPresented: $showEditor) {
             RuleEditorSheet(yaml: $editingYAML) { yaml in
+                Task { await vm.push(yamlContent: yaml) }
+            }
+        }
+        .sheet(isPresented: $showGuidedCreator) {
+            GuidedRuleSheet { yaml in
                 Task { await vm.push(yamlContent: yaml) }
             }
         }
